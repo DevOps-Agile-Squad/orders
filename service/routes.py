@@ -19,6 +19,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 # Import Flask application
 from . import app
+from service.model import CustomerOrder, OrderBase
 
 ######################################################################
 # GET INDEX
@@ -31,13 +32,43 @@ def index():
         status.HTTP_200_OK,
     )
 
-
 ######################################################################
-#  U T I L I T Y   F U N C T I O N S
+# CREATE NEW ORDER (EMPTY)
 ######################################################################
 
+# curl --header "Content-Type: application/json" \
+#   --request POST \
+#   --data '{"id":1,customer_id:2}' \
+#   http://localhost:5000/orders
 
-# def init_db():
-#     """ Initialies the SQLAlchemy app """
-#     global app
-#     YourResourceModel.init_db(app)
+@app.route("/orders/<int:order_id>", methods=["GET"])
+def get_order(order_id):
+    return make_response(jsonify(CustomerOrder.find_or_404(order_id), status.HTTP_200_OK))
+
+@app.route("/orders", methods=["POST"])
+def create_order():
+    """ Creates an order. """
+    app.logger.info("Creating order")
+    check_content_type("application/json")
+    customer_order = CustomerOrder()
+    customer_order.deserialize(request.get_json())
+    customer_order.create()
+    message = customer_order.serialize()
+    location_url = url_for(
+        "get_order", order_id=customer_order.order_id, _external=True)
+    response = make_response(
+        jsonify(message), status.HTTP_201_CREATED, {"Location": location_url})
+    response.headers["Content-Type"] = "application/json"
+    return response
+
+def check_content_type(content_type):
+    """ Checks that the media type is correct. """
+    if request.headers["Content-Type"] == content_type:
+        return
+    app.logger.error("Invalid Content-Type: %s", request.headers["Content-Type"])
+    abort(415, "Content-Type must be {}".format(content_type))
+
+def init_db():
+    """ Initializes Database. """
+    global app
+    OrderBase.init_db(app)
