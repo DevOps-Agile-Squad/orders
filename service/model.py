@@ -25,6 +25,12 @@ class OrderBase(object):
         self.order_id = None # id must be none to generate next primary key
         db.session.add(self)
         db.session.commit()
+    
+    def delete(self):
+        """Removes an Order from the data store"""
+        logger.info(f"Deleting order with ID: {self.order_id}")
+        db.session.delete(self)
+        db.session.commit()
 
     @classmethod
     def init_db(cls, app):

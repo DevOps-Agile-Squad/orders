@@ -73,6 +73,24 @@ def create_order():
     response.headers["Content-Type"] = "application/json"
     return response
 
+@app.route("/orders/<int:order_id>", methods=["DELETE"])
+def delete_order(order_id):
+    """
+    Delete an order
+
+    This endpoint will delete an Order based on the id specified in the path
+    """
+
+    app.logger.info(f"Request to delete order with id {order_id}")
+    order = CustomerOrder.find(order_id)
+    if order:
+        order.delete()
+    else:
+        raise NotFound(f"Order with id {order_id} was not found")
+    
+    app.logger.info(f"Order with ID {order_id} delete complete. ")
+    return make_response("", status.HTTP_204_NO_CONTENT)
+
 def check_content_type(content_type):
     """ Checks that the media type is correct. """
     if request.headers["Content-Type"] == content_type:
