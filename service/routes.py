@@ -17,6 +17,8 @@ from flask_api import status  # HTTP Status Codes
 from flask_sqlalchemy import SQLAlchemy
 # from service.models import YourResourceModel, DataValidationError
 
+from werkzeug.exceptions import NotFound
+
 # Import Flask application
 from . import app
 from service.model import CustomerOrder, OrderBase
@@ -43,7 +45,17 @@ def index():
 
 @app.route("/orders/<int:order_id>", methods=["GET"])
 def get_order(order_id):
-    return make_response(jsonify(CustomerOrder.find_or_404(order_id), status.HTTP_200_OK))
+    """
+    Retrieve a single order
+
+    This endpoint will return an order based on its id
+    """
+    app.logger.info(f"requrest for order with {order_id}")
+    maybe_order = CustomerOrder.find(order_id)
+    if not maybe_order:
+        raise NotFound(f"Order with id {order_id} was not found")
+    app.logger.info(f"Returning order {order_id}")
+    return make_response(jsonify(maybe_order.serialize(), status.HTTP_200_OK))
 
 @app.route("/orders", methods=["POST"])
 def create_order():

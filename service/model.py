@@ -37,6 +37,17 @@ class OrderBase(object):
         db.create_all()  # make our sqlalchemy tables
 
     @classmethod
+    def find(cls, order_id):
+        """ 
+        Finds an order by its ID
+
+        :return: an instance with the order_id, or None if not found
+        """
+
+        logger.info(f"Processing lookup for id {order_id}")
+        return cls.query.get(order_id)
+
+    @classmethod
     def find_or_404(cls, by_id):
         """ Find a order by it's id """
         logger.info('Processing lookup or 404 for id %s ...', by_id)
