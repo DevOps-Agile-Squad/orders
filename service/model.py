@@ -42,6 +42,55 @@ class OrderBase(object):
         logger.info('Processing lookup or 404 for id %s ...', by_id)
         return cls.query.get_or_404(by_id)
 
+######################################################################
+#  I T E M   M O D E L
+######################################################################
+class Item(db.Model, OrderBase):
+    """
+    Class that represents an Item
+    """
+
+    # Table Schema
+    order_id = db.Column(db.Integer, db.ForeignKey('CustomerOrder.order_id'), nullable=False)
+    quantity = db.Column(db.Integer, primary_key=True)
+    price = db.Column(db.Integer, primary_key=True)
+    item_name = db.Column(db.String(64)) # e.g., ball, balloon, etc.
+    
+    
+    def __str__(self):
+        return "%s: %s, %s" % (self.item_name,self.quantity, self.price)
+
+    def serialize(self):
+        """ Serializes a Address into a dictionary """
+        return {
+            "order_id": self.order_id,
+            "quantity": self.quantity,
+            "price": self.price,
+            "item_name": self.item_name,
+               }
+
+    def deserialize(self, data):
+        """
+        Deserializes a Item from a dictionary
+        Args:
+            data (dict): A dictionary containing the resource data
+        """
+        try:
+            
+            self.quantity = data["quantity"]
+            self.price = data["price"]
+            self.item_name = data["item_name"]
+            
+        except KeyError as error:
+            raise DataValidationError("Invalid Item: missing " + error.args[0])
+        except TypeError as error:
+            raise DataValidationError(
+                "Invalid Item: details of item contained"  "bad or no data"
+            )
+        return self
+
+
+
 #############################################################
 # CUSTOMER ORDER MODEL
 #############################################################
