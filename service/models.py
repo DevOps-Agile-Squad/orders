@@ -154,7 +154,7 @@ class CustomerOrder(db.Model):
 
     def serialize(self):
         """Serializes a Pet into a dictionary"""
-        return {
+        order = {
             "id": self.id,
             "customer_id": self.customer_id,
             "address": self.address,
