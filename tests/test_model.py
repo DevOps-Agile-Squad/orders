@@ -11,7 +11,7 @@ from unittest.mock import MagicMock
 from service import app
 
 DATABASE_URI = os.getenv(
-    "DATABASE_URI", "postgresql://postgres:postgres@localhost:5432/testdb"
+    "DATABASE_URI", "postgresql://postgres:postgres@localhost:5432/postgres"
 )
 
 def MakeItem(item_id=1, item_name='Egg', quantity=6, price=1, order_id=10):
