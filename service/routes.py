@@ -34,7 +34,7 @@ from werkzeug.exceptions import NotFound
 # For this example we'll use SQLAlchemy, a popular ORM that supports a
 # variety of backends including SQLite, MySQL, and PostgreSQL
 from flask_sqlalchemy import SQLAlchemy
-from service.models import CustomerOrder, DataValidationError
+from service.models import CustomerOrder, Item, DataValidationError
 
 # Import Flask application
 from . import app
@@ -77,12 +77,42 @@ from . import app
 #     app.logger.info("Returning %d pets", len(results))
 #     return make_response(jsonify(results), status.HTTP_200_OK)
 
-
 ######################################################################
 # RETRIEVE A CUSTOMERORDER
 ######################################################################
 @app.route("/orders/<int:order_id>", methods=["GET"])
 def get_order(order_id):
+    """
+    Retrieve a single order
+    This endpoint will return a customer_order based on it's id
+    """
+    app.logger.info("Request for order with id: %s", order_id)
+    order = CustomerOrder.find(order_id)
+    if not order:
+        raise NotFound("Order with id '{}' was not found.".format(order_id))
+
+    app.logger.info("Returning order: %s", order_id)
+    return make_response(jsonify(order.serialize()), status.HTTP_200_OK)
+
+######################################################################
+# ADD ITEM TO A CUSTOMER ORDER
+######################################################################
+@app.route("/orders/<int:order_id>/items", methods=["POST"])
+def add_item(order_id):
+    """Adds item to an order."""
+    app.logger.info("Request to add an item to an order")
+    check_content_type("application/json")
+    customer_order = CustomerOrder.find_or_404(order_id)
+    item = Item()
+    item.deserialize(request.get_json())
+    customer_order.items.append(item)
+    customer_order.save()
+    message = item.serialize()
+    return make_response(jsonify(message), status.HTTP_201_CREATED)
+
+
+@app.route("/orders/<int:order_id>", methods=["GET"])
+def add_order(order_id):
     """
     Retrieve a single order
 
@@ -95,7 +125,6 @@ def get_order(order_id):
 
     app.logger.info("Returning order: %s", order_id)
     return make_response(jsonify(order.serialize()), status.HTTP_200_OK)
-
 
 ######################################################################
 # ADD A NEW PET

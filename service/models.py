@@ -49,12 +49,57 @@ class DataValidationError(Exception):
     pass
 
 
-# class Gender(Enum):
-#     """Enumeration of valid Pet Genders"""
+######################################################################
+#  I T E M   M O D E L
+######################################################################
+class Item(db.Model):
+    """
+    Class that represents an Item
+    """
 
-#     Male = 0
-#     Female = 1
-#     Unknown = 3
+    # Table Schema
+    id = db.Column(db.Integer, primary_key=True)
+    order_id = db.Column(db.Integer, db.ForeignKey('customer_order.id'), nullable=False)
+    quantity = db.Column(db.Integer, nullable=True)  # If null quantity will be treated as 1.
+    price = db.Column(db.Integer, nullable=False)
+    item_name = db.Column(db.String(120), nullable=False) # e.g., ball, balloon, etc.
+
+    def __eq__(self, other):
+        return (self.id == other.id) or ((self.id is None or other.id is None) and
+            (self.item_name == other.item_name) and
+            (self.order_id == other.order_id) and
+            (self.quantity == other.quantity) and
+            (self.price == other.price))
+
+    def serialize(self):
+        """ Serializes a Address into a dictionary """
+        return {
+            "item_id": self.id,
+            "order_id": self.order_id,
+            "quantity": self.quantity,
+            "price": self.price,
+            "item_name": self.item_name,
+        }
+
+    def deserialize(self, data):
+        """
+        Deserializes a Item from a dictionary
+        Args:
+            data (dict): A dictionary containing the resource data
+        """
+        try:
+            self.order_id = data["order_id"]
+            self.quantity = data["quantity"]
+            self.price = data["price"]
+            self.item_name = data["item_name"]
+        except KeyError as error:
+            raise DataValidationError("Invalid Item: missing " + error.args[0])
+        except TypeError as error:
+            raise DataValidationError(
+                "Invalid Item: details of item contained"  "bad or no data"
+            )
+        return self
+
 
 
 class CustomerOrder(db.Model):
@@ -73,6 +118,7 @@ class CustomerOrder(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     customer_id = db.Column(db.Integer, nullable=False)
     address = db.Column(db.String(256), nullable=False)
+    items = db.relationship('Item', backref='order', lazy=True)
     
 
     ##################################################
@@ -108,11 +154,15 @@ class CustomerOrder(db.Model):
 
     def serialize(self):
         """Serializes a Pet into a dictionary"""
-        return {
+        order = {
             "id": self.id,
             "customer_id": self.customer_id,
             "address": self.address,
+            "items": []
         }
+        for item in self.items:
+            order["items"].append(item.serialize())
+        return order
 
     def deserialize(self, data):
         """
@@ -128,6 +178,12 @@ class CustomerOrder(db.Model):
         try:
             self.customer_id = data["customer_id"]
             self.address = data["address"]
+            self.items = []
+            if 'items' in data and data['items']:
+                for item_str in data.get('items'):
+                    item = Item()
+                    item.deserialize(item_str)
+                    self.items.append(item)
         except KeyError as error:
             raise DataValidationError("Invalid pet: missing " + error.args[0])
         except TypeError as error:
@@ -188,6 +244,13 @@ class CustomerOrder(db.Model):
         """
         logger.info("Processing lookup or 404 for id %s ...", customer_order_id)
         return cls.query.get_or_404(customer_order_id)
+
+    def save(self):
+        """
+        Updates a order into the database
+        """
+        logger.info("Saving %s", self.id)
+        db.session.commit()
 
     # @classmethod
     # def find_by_name(cls, name):
