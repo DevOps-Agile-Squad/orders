@@ -21,7 +21,7 @@ from service.routes import app
 from unittest.mock import MagicMock
 
 DATABASE_URI = os.getenv(
-    "DATABASE_URI", "postgresql://postgres:postgres@localhost:5432/testdb"
+    "DATABASE_URI", "postgresql://postgres:postgres@localhost:5432/postgres"
 )
 BASE_URL = "/orders"
 CONTENT_TYPE_JSON = "application/json"
