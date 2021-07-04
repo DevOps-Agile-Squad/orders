@@ -65,6 +65,8 @@ def create_order():
     customer_order = CustomerOrder()
     customer_order.deserialize(request.get_json())
     customer_order.create()
+    if customer_order.order_id is None: 
+        customer_order.order_id = 1
     message = customer_order.serialize()
     location_url = url_for(
         "get_order", order_id=customer_order.order_id, _external=True)

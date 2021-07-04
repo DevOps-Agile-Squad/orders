@@ -15,6 +15,7 @@ from flask_api import status  # HTTP Status Codes
 from service.model import db, OrderBase 
 from service.routes import app
 from unittest.mock import MagicMock
+from .factories import OrderFactory
 
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql://postgres:postgres@localhost:5432/testdb"
@@ -53,6 +54,24 @@ class TestYourResourceServer(TestCase):
         """ This runs after each test """
         db.session.remove()
         db.drop_all()
+    
+    def _create_orders(self, count):
+        """Factory method to create pets in bulk"""
+        orders = []
+        for _ in range(count):
+            test_order = OrderFactory()
+            resp = self.app.post(
+                BASE_URL, json=test_order.serialize(), content_type=CONTENT_TYPE_JSON
+            )
+            self.assertEqual(
+                resp.status_code, status.HTTP_201_CREATED, "Could not create test pet"
+            )
+            new_order = resp.get_json()
+            logging.debug(f"old id is {test_order.order_id}")
+            logging.debug(f"new id is {new_order['order_id']}")
+            test_order.order_id = new_order["order_id"]
+            orders.append(test_order)
+        return orders
 
     ######################################################################
     #  P L A C E   T E S T   C A S E S   H E R E
@@ -62,21 +81,37 @@ class TestYourResourceServer(TestCase):
         """ Test index call """
         resp = self.app.get("/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-    
+
     def test_create_order(self):
-        """Test that order is created."""
-        def set_order_id(order):
-            order.order_id = 1  # order_id is assigned by SQLAlchemy in real function.
-        db.session.add = MagicMock(return_value=None, side_effect=set_order_id)
-        db.session.commit = MagicMock(return_value=None)
-        resp = self.app.post('/orders', json={
-            "customer_id": 15,
-            "address_line1": "123 Lost Road Apt 420",
-            "city": "Jersey City",
-            "state": "NJ",
-            "zip_code": 12345})
-        db.session.commit.assert_called()
-        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+        """Test that the order is created"""
+        test_order = OrderFactory()
+        logging.debug(test_order.serialize())
+        resp = self.app.post(BASE_URL, json=test_order.serialize(), content_type=CONTENT_TYPE_JSON)
+        self.assertEqual(resp.status_code, 201)
+
+
+    def test_delete(self):
+        test_order = self._create_orders(1)[0]
+
+        resp = self.app.delete(
+            f"/{BASE_URL}/{test_order.order_id}", content_type=CONTENT_TYPE_JSON
+        )
+        self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
+    
+    # def test_create_order1(self):
+    #     """Test that order is created."""
+    #     def set_order_id(order):
+    #         order.order_id = 1  # order_id is assigned by SQLAlchemy in real function.
+    #     db.session.add = MagicMock(return_value=None, side_effect=set_order_id)
+    #     db.session.commit = MagicMock(return_value=None)
+    #     resp = self.app.post('/orders', json={
+    #         "customer_id": 15,
+    #         "address_line1": "123 Lost Road Apt 420",
+    #         "city": "Jersey City",
+    #         "state": "NJ",
+    #         "zip_code": 12345})
+    #     db.session.commit.assert_called()
+    #     self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
     
     def test_create_order_error(self):
         """Test that invalid content type are ignored."""
