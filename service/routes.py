@@ -19,7 +19,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 # Import Flask application
 from . import app
-from service.model import CustomerOrder, OrderBase
+from service.model import CustomerOrder, Item, OrderBase
 
 ######################################################################
 # GET INDEX
@@ -32,18 +32,40 @@ def index():
         status.HTTP_200_OK,
     )
 
+@app.route("/orders/<int:order_id>", methods=["GET"])
+def get_order(order_id):
+    return make_response(jsonify(CustomerOrder.find_or_404(order_id), status.HTTP_200_OK))
+
+######################################################################
+# CREATE NEW ITEM
+######################################################################
+
+# curl --header "Content-Type: application/json" \
+#   --request POST \
+#   --data '{"order_id": 1, "price": 1, "quantity": 6, "item_name": "Egg"}' \
+#   http://localhost:5000/orders/1/items
+
+@app.route("/orders/<int:order_id>/items", methods=["POST"])
+def add_item(order_id):
+    """Adds item to an order."""
+    app.logger.info("Request to add an item to an order")
+    check_content_type("application/json")
+    customer_order = CustomerOrder.find_or_404(order_id)
+    item = Item()
+    item.deserialize(request.get_json())
+    customer_order.items.append(item)
+    customer_order.save()
+    message = item.serialize()
+    return make_response(jsonify(message), status.HTTP_201_CREATED)
+
 ######################################################################
 # CREATE NEW ORDER (EMPTY)
 ######################################################################
 
 # curl --header "Content-Type: application/json" \
 #   --request POST \
-#   --data '{"id":1,customer_id:2}' \
+#   --data '{"customer_id": 5, "address_line1": "123 1st Road", "city": "Jersey City", "state": "NJ", "zip_code": 12345, "items": []}' \
 #   http://localhost:5000/orders
-
-@app.route("/orders/<int:order_id>", methods=["GET"])
-def get_order(order_id):
-    return make_response(jsonify(CustomerOrder.find_or_404(order_id), status.HTTP_200_OK))
 
 @app.route("/orders", methods=["POST"])
 def create_order():

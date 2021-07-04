@@ -12,7 +12,11 @@ import logging
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 from flask_api import status  # HTTP Status Codes
+<<<<<<< HEAD
 from service.model import db, OrderBase 
+=======
+from service.model import db, OrderBase, CustomerOrder, Item
+>>>>>>> fb58348 (Item mdel)
 from service.routes import app
 from unittest.mock import MagicMock
 
@@ -85,3 +89,28 @@ class TestYourResourceServer(TestCase):
             content_type="application/x-www-form-urlencoded")
         self.assertEqual(resp.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
 
+    @patch('flask_sqlalchemy._QueryProperty.__get__')
+    def test_add_item(self, sql_alchemy_get_mock):
+        """Test adding items to the order."""
+        # Create an order.
+        db.session.commit = MagicMock(return_value=None)
+        CustomerOrder.query.get_or_404 = MagicMock(return_value=CustomerOrder(
+            order_id=1,
+            customer_id=2,
+            address_line1="address_line1",
+            address_line2="address_line2",
+            city="Jersey City",
+            state="NJ",
+            zip_code=12345,
+            items=[]))
+
+        # Add item to order.
+        resp = self.app.post('/orders/1/items', json={
+            "order_id": 1,
+            "item_name": 'Egg',
+            "quantity": 6,
+            'price': 1
+        })
+        CustomerOrder.query.get_or_404.assert_called_with(1)
+        #db.session.commit.assert_called()
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
