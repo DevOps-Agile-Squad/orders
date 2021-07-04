@@ -91,14 +91,14 @@ class CustomerOrder(db.Model):
         db.session.add(self)
         db.session.commit()
 
-    # def update(self):
-    #     """
-    #     Updates a Pet to the database
-    #     """
-    #     logger.info("Saving %s", self.name)
-    #     if not self.id:
-    #         raise DataValidationError("Update called with empty ID field")
-    #     db.session.commit()
+    def update(self):
+        """
+        Updates a CustomerOrder to the database
+        """
+        logger.info(f"Updating order {self.id}")
+        if not self.id:
+            raise DataValidationError("Update called with empty ID field")
+        db.session.commit()
 
     def delete(self):
         """Removes a Pet from the data store"""

@@ -163,27 +163,27 @@ class TestPetServer(unittest.TestCase):
     #     resp = self.app.post(BASE_URL)
     #     self.assertEqual(resp.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
 
-    # def test_update_pet(self):
-    #     """Update an existing Pet"""
-    #     # create a pet to update
-    #     test_pet = PetFactory()
-    #     resp = self.app.post(
-    #         BASE_URL, json=test_pet.serialize(), content_type=CONTENT_TYPE_JSON
-    #     )
-    #     self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+    def test_update_order(self):
+        """Update an existing CustomerOrder"""
+        # create a pet to update
+        test_order = CustomerOrderFactory()
+        resp = self.app.post(
+            BASE_URL, json=test_order.serialize(), content_type=CONTENT_TYPE_JSON
+        )
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
 
-    #     # update the pet
-    #     new_pet = resp.get_json()
-    #     logging.debug(new_pet)
-    #     new_pet["category"] = "unknown"
-    #     resp = self.app.put(
-    #         "/pets/{}".format(new_pet["id"]),
-    #         json=new_pet,
-    #         content_type=CONTENT_TYPE_JSON,
-    #     )
-    #     self.assertEqual(resp.status_code, status.HTTP_200_OK)
-    #     updated_pet = resp.get_json()
-    #     self.assertEqual(updated_pet["category"], "unknown")
+        # update the order
+        new_order = resp.get_json()
+        logging.debug(new_order)
+        new_order["address"] = "new"
+        resp = self.app.put(
+            "/orders/{}".format(new_order["id"]),
+            json=new_order,
+            content_type=CONTENT_TYPE_JSON,
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        updated_order = resp.get_json()
+        self.assertEqual(updated_order["address"], "new")
 
     def test_delete_order(self):
         """Delete a order"""

@@ -28,4 +28,9 @@ class CustomerOrderFactory(factory.Factory):
 
     id = factory.Sequence(lambda n: n)
     customer_id = factory.Sequence(lambda n: n)
-    address = f"random address"
+    address = factory.Faker("address")
+    # address_line2 = factory.Faker("address")
+    # city = factory.Faker("city")
+    # state = factory.Faker("state")
+    # zip_code = factory.Faker("zipcode")
+    # status = FuzzyChoice(choices=["pending", "completed", "canceled"])
