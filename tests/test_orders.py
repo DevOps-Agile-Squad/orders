@@ -27,13 +27,18 @@ import os
 import logging
 import unittest
 from werkzeug.exceptions import NotFound
-from service.models import CustomerOrder, DataValidationError, db
+from service.models import CustomerOrder, DataValidationError, db, Item
 from service import app
 from .factories import CustomerOrderFactory
 
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgres://postgres:postgres@localhost:5432/testdb"
 )
+
+def MakeItem(id=1, item_name='Egg', quantity=6, price=1, order_id=10):
+    """Create and item for Order."""
+    return Item(id=id, item_name=item_name, quantity=quantity,
+        price=price, order_id=order_id)
 
 ######################################################################
 #  P E T   M O D E L   T E S T   C A S E S
@@ -71,7 +76,7 @@ class TestPetModel(unittest.TestCase):
 
     def test_create_a_customer_order(self):
         """Create a pet and assert that it exists"""
-        order = CustomerOrder(customer_id=13, address="random address")
+        order = CustomerOrder(customer_id=13, address="random address", items=[ MakeItem() ])
         self.assertTrue(order != None)
         self.assertEqual(order.id, None)
         self.assertEqual(order.customer_id, 13)
@@ -81,7 +86,7 @@ class TestPetModel(unittest.TestCase):
         """Create a pet and add it to the database"""
         orderss = CustomerOrder.all()
         self.assertEqual(orderss, [])
-        order = CustomerOrder(customer_id=13, address="random address")
+        order = CustomerOrder(customer_id=13, address="random address", items=[ MakeItem() ])
         self.assertTrue(order != None)
         self.assertEqual(order.id, None)
         order.create()
@@ -119,6 +124,19 @@ class TestPetModel(unittest.TestCase):
         order.delete()
         self.assertEqual(len(CustomerOrder.all()), 0)
 
+    def test_serialize_deserialize_item(self):
+        """Test serialization of an item."""
+        test_item = Item()
+        expected_item = MakeItem(id=1)
+        test_item.deserialize(expected_item.serialize())
+        self.assertEqual(expected_item, test_item)
+
+    def test_deserialize_item_error(self):
+        """Test serialization of an item."""
+        test_item = Item()
+        self.assertRaises(DataValidationError, test_item.deserialize, {"id": 1, "item_name": "Egg"})
+        self.assertRaises(DataValidationError, test_item.deserialize, "Not a dictionary")
+
     def test_serialize_a_customer_order(self):
         """Test serialization of a customer order"""
         order = CustomerOrderFactory()
@@ -137,6 +155,13 @@ class TestPetModel(unittest.TestCase):
             "id": 1,
             "customer_id": 12,
             "address": "new address",
+            "items": [{
+                "id": 1,
+                "price": 1,
+                "item_name": "Egg",
+                "quantity": 6,
+                "order_id": 10
+            }]
         }
         order = CustomerOrder()
         order.deserialize(data)
@@ -144,6 +169,7 @@ class TestPetModel(unittest.TestCase):
         self.assertEqual(order.id, None)
         self.assertEqual(order.customer_id, 12)
         self.assertEqual(order.address, "new address")
+        self.assertListEqual(order.items, [MakeItem(id=None)])
 
     def test_deserialize_missing_data(self):
         """Test deserialization of a customer order with missing data"""

@@ -31,7 +31,7 @@ import unittest
 # from unittest.mock import MagicMock, patch
 from urllib.parse import quote_plus
 from service import status  # HTTP Status Codes
-from service.models import db, init_db
+from service.models import db, init_db, Item
 from service.routes import app
 from .factories import CustomerOrderFactory
 
@@ -152,6 +152,30 @@ class TestPetServer(unittest.TestCase):
             new_order["address"], test_order.address, "address do not match"
         )
 
+    def test_add_item(self):
+        """Create a new item"""
+        test_order = CustomerOrderFactory()
+        logging.debug(test_order)
+        resp = self.app.post(
+            BASE_URL, json=test_order.serialize(), content_type=CONTENT_TYPE_JSON
+        )
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+        new_order = resp.get_json()
+
+        resp = self.app.post(
+            "/orders/{}/items".format(new_order["id"]),
+            json=Item(id=None, item_name='Egg', quantity=6,
+                      price=1, order_id=new_order["id"]).serialize(),
+            content_type=CONTENT_TYPE_JSON
+        )
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+
+    def test_create_order_error(self):
+        """Test that invalid content type are ignored."""
+        resp = self.app.post(
+            '/orders', data='Non JSON data type',
+            content_type="application/x-www-form-urlencoded")
+        self.assertEqual(resp.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
 
     # def test_create_pet_no_data(self):
     #     """Create a Pet with missing data"""
