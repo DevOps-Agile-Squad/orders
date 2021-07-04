@@ -16,7 +16,7 @@ from flask_api import status  # HTTP Status Codes
 from service.model import db, OrderBase 
 
 from service.model import db, OrderBase, CustomerOrder, Item
->>>>>>> fb58348 (Item mdel)
+
 from service.routes import app
 from unittest.mock import MagicMock
 
