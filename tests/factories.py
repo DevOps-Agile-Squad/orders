@@ -11,3 +11,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+"""
+Test Factory to make fake objects for testing
+"""
+import factory
+from factory.fuzzy import FuzzyChoice
+from service.models import CustomerOrder
+
+
+class CustomerOrderFactory(factory.Factory):
+    """Creates fake pets that you don't have to feed"""
+
+    class Meta:
+        model = CustomerOrder
+
+    id = factory.Sequence(lambda n: n)
+    customer_id = factory.Sequence(lambda n: n)
+    address = f"random address"
