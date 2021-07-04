@@ -43,7 +43,7 @@ def MakeItem(id=1, item_name='Egg', quantity=6, price=1, order_id=10):
 ######################################################################
 #  P E T   M O D E L   T E S T   C A S E S
 ######################################################################
-class TestPetModel(unittest.TestCase):
+class TestCustomerOrderModel(unittest.TestCase):
     """Test Cases for Order Model"""
 
     @classmethod

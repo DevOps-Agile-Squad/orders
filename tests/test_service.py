@@ -31,13 +31,14 @@ import unittest
 # from unittest.mock import MagicMock, patch
 from urllib.parse import quote_plus
 from service import status  # HTTP Status Codes
-from service.models import db, init_db, Item
+from service.models import db, init_db, Item, CustomerOrder
 from service.routes import app
 from .factories import CustomerOrderFactory
+from werkzeug.exceptions import NotFound
 
 # Disable all but ciritcal errors during normal test run
 # uncomment for debugging failing tests
-logging.disable(logging.CRITICAL)
+# logging.disable(logging.CRITICAL)
 
 # DATABASE_URI = os.getenv('DATABASE_URI', 'sqlite:///../db/test.db')
 DATABASE_URI = os.getenv(
@@ -50,7 +51,7 @@ CONTENT_TYPE_JSON = "application/json"
 ######################################################################
 #  T E S T   C A S E S
 ######################################################################
-class TestPetServer(unittest.TestCase):
+class TestCustomerOrderServer(unittest.TestCase):
     """Pet Server Tests"""
 
     @classmethod
@@ -209,6 +210,16 @@ class TestPetServer(unittest.TestCase):
         updated_order = resp.get_json()
         self.assertEqual(updated_order["address"], "new")
 
+        test_order.id = 0
+        resp = self.app.put(
+            "/orders/{}".format(test_order.id),
+            json=test_order.serialize(),
+            content_type=CONTENT_TYPE_JSON,
+        )
+        self.assertRaises(NotFound)
+
+
+
     def test_delete_order(self):
         """Delete a order"""
         test_order = self._create_orders(1)[0]
@@ -222,7 +233,34 @@ class TestPetServer(unittest.TestCase):
             "{0}/{1}".format(BASE_URL, test_order.id), content_type=CONTENT_TYPE_JSON
         )
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+    
+    def test_delete_item(self):
+        """Delete an item"""
+        test_orders = self._create_orders(2)
+        test_order = test_orders[0]
+        test_item = {"id": 2, "order_id": test_order.id, "quantity": 3, "price": 2.99, "item_name": "test item"}
+        resp = self.app.post(
+            f"/orders/{test_order.id}/items", 
+            json=test_item,
+            content_type=CONTENT_TYPE_JSON
+        )
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+        returned_item = Item()
+        returned_item.deserialize(resp.get_json())
+        returned_item.id = resp.get_json()["item_id"]
 
+        self.assertEqual(len(CustomerOrder.find(returned_item.order_id).items), 1)
+
+        resp = self.app.delete(f"orders/{test_orders[1].id}/items/{returned_item.id}")
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+        
+        resp = self.app.delete(f"/orders/{returned_item.order_id}/items/{returned_item.id}", content_type=CONTENT_TYPE_JSON)
+        self.assertEqual(len(CustomerOrder.find(returned_item.order_id).items), 0)
+
+        resp = self.app.delete("/orders/0/items/13", content_type=CONTENT_TYPE_JSON)
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+        
     # def test_query_pet_list_by_category(self):
     #     """Query Pets by Category"""
     #     pets = self._create_pets(10)

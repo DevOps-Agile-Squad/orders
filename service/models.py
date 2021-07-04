@@ -13,19 +13,19 @@
 # limitations under the License.
 
 """
-Models for Pet Demo Service
+Models for order Demo Service
 
 All of the models are stored in this module
 
 Models
 ------
-Pet - A Pet used in the Pet Store
+order - A order used in the order Store
 
 Attributes:
 -----------
-name (string) - the name of the pet
-category (string) - the category the pet belongs to (i.e., dog, cat)
-available (boolean) - True for pets that are available for adoption
+name (string) - the name of the order
+category (string) - the category the order belongs to (i.e., dog, cat)
+available (boolean) - True for orders that are available for adoption
 
 """
 import logging
@@ -70,6 +70,26 @@ class Item(db.Model):
             (self.order_id == other.order_id) and
             (self.quantity == other.quantity) and
             (self.price == other.price))
+    
+    @classmethod
+    def find(cls, item_id):
+        """Finds an item by its ID
+
+        :param item_id: the id of the order to find
+        :type item_id: int
+
+        :return: an instance with the item_id, or None if not found
+        :rtype: order
+
+        """
+        logger.info("Processing lookup for id %s ...", item_id)
+        return cls.query.get(item_id)
+    
+    def delete(self):
+        """Removes an item from the data store"""
+        logger.info(f"Deleting order {self.id}")
+        db.session.delete(self)
+        db.session.commit()
 
     def serialize(self):
         """ Serializes a Address into a dictionary """
@@ -118,7 +138,7 @@ class CustomerOrder(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     customer_id = db.Column(db.Integer, nullable=False)
     address = db.Column(db.String(256), nullable=False)
-    items = db.relationship('Item', backref='order', lazy=True)
+    items = db.relationship('Item', backref='order', lazy=True, cascade="all, delete")
     
 
     ##################################################
@@ -147,13 +167,13 @@ class CustomerOrder(db.Model):
         db.session.commit()
 
     def delete(self):
-        """Removes a Pet from the data store"""
+        """Removes a order from the data store"""
         logger.info(f"Deleting order {self.id}")
         db.session.delete(self)
         db.session.commit()
 
     def serialize(self):
-        """Serializes a Pet into a dictionary"""
+        """Serializes a order into a dictionary"""
         order = {
             "id": self.id,
             "customer_id": self.customer_id,
@@ -166,13 +186,13 @@ class CustomerOrder(db.Model):
 
     def deserialize(self, data):
         """
-        Deserializes a Pet from a dictionary
+        Deserializes a order from a dictionary
 
         :param data: a dictionary of attributes
         :type data: dict
 
         :return: a reference to self
-        :rtype: Pet
+        :rtype: order
 
         """
         try:
@@ -185,10 +205,10 @@ class CustomerOrder(db.Model):
                     item.deserialize(item_str)
                     self.items.append(item)
         except KeyError as error:
-            raise DataValidationError("Invalid pet: missing " + error.args[0])
+            raise DataValidationError("Invalid order: missing " + error.args[0])
         except TypeError as error:
             raise DataValidationError(
-                "Invalid pet: body of request contained bad or no data"
+                "Invalid order: body of request contained bad or no data"
             )
         return self
 
@@ -213,19 +233,19 @@ class CustomerOrder(db.Model):
 
     @classmethod
     def all(cls):
-        """Returns all of the Pets in the database"""
-        logger.info("Processing all Pets")
+        """Returns all of the orders in the database"""
+        logger.info("Processing all orders")
         return cls.query.all()
 
     @classmethod
     def find(cls, customer_order_id):
-        """Finds a Pet by it's ID
+        """Finds a order by it's ID
 
-        :param pet_id: the id of the Pet to find
-        :type pet_id: int
+        :param order_id: the id of the order to find
+        :type order_id: int
 
-        :return: an instance with the pet_id, or None if not found
-        :rtype: Pet
+        :return: an instance with the order_id, or None if not found
+        :rtype: order
 
         """
         logger.info("Processing lookup for id %s ...", customer_order_id)
@@ -238,8 +258,8 @@ class CustomerOrder(db.Model):
         :param customer_order_id: the id of the CustomerOrder to find
         :type customer_order_id: int
 
-        :return: an instance with the pet_id, or 404_NOT_FOUND if not found
-        :rtype: Pet
+        :return: an instance with the order_id, or 404_NOT_FOUND if not found
+        :rtype: order
 
         """
         logger.info("Processing lookup or 404 for id %s ...", customer_order_id)
