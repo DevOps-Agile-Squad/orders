@@ -90,25 +90,25 @@ class TestPetModel(unittest.TestCase):
         orders = CustomerOrder.all()
         self.assertEqual(len(orders), 1)
 
-    # def test_update_a_pet(self):
-    #     """Update a Pet"""
-    #     pet = PetFactory()
-    #     logging.debug(pet)
-    #     pet.create()
-    #     logging.debug(pet)
-    #     self.assertEqual(pet.id, 1)
-    #     # Change it an save it
-    #     pet.category = "k9"
-    #     original_id = pet.id
-    #     pet.update()
-    #     self.assertEqual(pet.id, original_id)
-    #     self.assertEqual(pet.category, "k9")
-    #     # Fetch it back and make sure the id hasn't changed
-    #     # but the data did change
-    #     pets = Pet.all()
-    #     self.assertEqual(len(pets), 1)
-    #     self.assertEqual(pets[0].id, 1)
-    #     self.assertEqual(pets[0].category, "k9")
+    def test_update_a_pet(self):
+        """Update a CustomerOrder"""
+        order = CustomerOrderFactory()
+        logging.debug(order)
+        order.create()
+        logging.debug(order)
+        self.assertEqual(order.id, 1)
+        # Change it an save it
+        order.address = "new"
+        original_id = order.id
+        order.update()
+        self.assertEqual(order.id, original_id)
+        self.assertEqual(order.address, "new")
+        # Fetch it back and make sure the id hasn't changed
+        # but the data did change
+        orders = CustomerOrder.all()
+        self.assertEqual(len(orders), 1)
+        self.assertEqual(orders[0].id, 1)
+        self.assertEqual(orders[0].address, "new")
 
     def test_delete_a_customer_order(self):
         """Delete a customer order"""

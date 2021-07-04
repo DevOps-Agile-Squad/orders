@@ -123,24 +123,24 @@ def create_order():
 ######################################################################
 # UPDATE AN EXISTING PET
 ######################################################################
-# @app.route("/pets/<int:pet_id>", methods=["PUT"])
-# def update_pets(pet_id):
-#     """
-#     Update a Pet
+@app.route("/orders/<int:order_id>", methods=["PUT"])
+def update_orders(order_id):
+    """
+    Update a CustomerOrder
 
-#     This endpoint will update a Pet based the body that is posted
-#     """
-#     app.logger.info("Request to update pet with id: %s", pet_id)
-#     check_content_type("application/json")
-#     pet = Pet.find(pet_id)
-#     if not pet:
-#         raise NotFound("Pet with id '{}' was not found.".format(pet_id))
-#     pet.deserialize(request.get_json())
-#     pet.id = pet_id
-#     pet.update()
+    This endpoint will update a CustomerOrder based the body that is posted
+    """
+    app.logger.info("Request to update order with id: %s", order_id)
+    check_content_type("application/json")
+    order = CustomerOrder.find(order_id)
+    if not order:
+        raise NotFound("Order with id '{}' was not found.".format(order_id))
+    order.deserialize(request.get_json())
+    order.id = order_id
+    order.update()
 
-#     app.logger.info("Pet with ID [%s] updated.", pet.id)
-#     return make_response(jsonify(pet.serialize()), status.HTTP_200_OK)
+    app.logger.info("Order with ID [%s] updated.", order.id)
+    return make_response(jsonify(order.serialize()), status.HTTP_200_OK)
 
 
 ######################################################################
