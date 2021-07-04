@@ -13,15 +13,15 @@
 # limitations under the License.
 
 """
-Pet Store Service
+order Store Service
 
 Paths:
 ------
-GET /pets - Returns a list all of the Pets
-GET /pets/{id} - Returns the Pet with a given id number
-POST /pets - creates a new Pet record in the database
-PUT /pets/{id} - updates a Pet record in the database
-DELETE /pets/{id} - deletes a Pet record in the database
+GET /orders - Returns a list all of the orders
+GET /orders/{id} - Returns the order with a given id number
+POST /orders - creates a new order record in the database
+PUT /orders/{id} - updates a order record in the database
+DELETE /orders/{id} - deletes a order record in the database
 """
 
 import os
@@ -50,31 +50,31 @@ from . import app
 #         jsonify(
 #             name="Orders Demo REST API Service",
 #             version="1.0",
-#             paths=url_for("list_pets", _external=True),
+#             paths=url_for("list_orders", _external=True),
 #         ),
 #         status.HTTP_200_OK,
 #     )
 
 
 ######################################################################
-# LIST ALL PETS
+# LIST ALL orderS
 ######################################################################
-# @app.route("/pets", methods=["GET"])
-# def list_pets():
-#     """Returns all of the Pets"""
-#     app.logger.info("Request for pet list")
-#     pets = []
+# @app.route("/orders", methods=["GET"])
+# def list_orders():
+#     """Returns all of the orders"""
+#     app.logger.info("Request for order list")
+#     orders = []
 #     category = request.args.get("category")
 #     name = request.args.get("name")
 #     if category:
-#         pets = Pet.find_by_category(category)
+#         orders = order.find_by_category(category)
 #     elif name:
-#         pets = Pet.find_by_name(name)
+#         orders = order.find_by_name(name)
 #     else:
-#         pets = Pet.all()
+#         orders = order.all()
 
-#     results = [pet.serialize() for pet in pets]
-#     app.logger.info("Returning %d pets", len(results))
+#     results = [order.serialize() for order in orders]
+#     app.logger.info("Returning %d orders", len(results))
 #     return make_response(jsonify(results), status.HTTP_200_OK)
 
 ######################################################################
@@ -111,29 +111,14 @@ def add_item(order_id):
     return make_response(jsonify(message), status.HTTP_201_CREATED)
 
 
-@app.route("/orders/<int:order_id>", methods=["GET"])
-def add_order(order_id):
-    """
-    Retrieve a single order
-
-    This endpoint will return a customer_order based on it's id
-    """
-    app.logger.info("Request for order with id: %s", order_id)
-    order = CustomerOrder.find(order_id)
-    if not order:
-        raise NotFound("Order with id '{}' was not found.".format(order_id))
-
-    app.logger.info("Returning order: %s", order_id)
-    return make_response(jsonify(order.serialize()), status.HTTP_200_OK)
-
 ######################################################################
-# ADD A NEW PET
+# ADD A NEW order
 ######################################################################
 @app.route("/orders", methods=["POST"])
 def create_order():
     """
-    Creates a Pet
-    This endpoint will create a Pet based the data in the body that is posted
+    Creates a order
+    This endpoint will create a order based the data in the body that is posted
     """
     app.logger.info("Request to create a customer order")
     check_content_type("application/json")
@@ -150,7 +135,7 @@ def create_order():
 
 
 ######################################################################
-# UPDATE AN EXISTING PET
+# UPDATE AN EXISTING order
 ######################################################################
 @app.route("/orders/<int:order_id>", methods=["PUT"])
 def update_orders(order_id):
@@ -173,21 +158,41 @@ def update_orders(order_id):
 
 
 ######################################################################
-# DELETE A PET
+# DELETE A order
 ######################################################################
 @app.route("/orders/<int:order_id>", methods=["DELETE"])
-def delete_pets(order_id):
+def delete_orders(order_id):
     """
     Delete a order
 
-    This endpoint will delete a Pet based the id specified in the path
+    This endpoint will delete a order based the id specified in the path
     """
     app.logger.info("Request to delete order with id: %s", order_id)
     order = CustomerOrder.find(order_id)
     if order:
         order.delete()
 
-    app.logger.info("Pet with ID [%s] delete complete.", order_id)
+    app.logger.info("order with ID [%s] delete complete.", order_id)
+    return make_response("", status.HTTP_204_NO_CONTENT)
+
+@app.route("/orders/<int:order_id>/items/<int:item_id>", methods=["DELETE"])
+def delete_items(order_id, item_id):
+    """
+    Delete an item
+
+    This endpoint will delete an item based on id specified in the path
+    """
+    app.logger.info(f"Request to delete item with id {item_id}")
+    order = CustomerOrder.find(order_id)
+    if order is None: 
+        return make_response(f"Order with id {order_id} is not found", status.HTTP_404_NOT_FOUND)
+    item = Item.find(item_id)
+    
+    if item is not None:
+        if item.order_id != order_id:
+            return make_response(f"Item with id {item.order_id} is not in order with id {order_id}", status.HTTP_404_NOT_FOUND)
+        item.delete()
+    app.logger.info(f"item with id {item_id} delete complete")
     return make_response("", status.HTTP_204_NO_CONTENT)
 
 
