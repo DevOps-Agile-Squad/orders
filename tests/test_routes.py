@@ -12,9 +12,9 @@ import logging
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 from flask_api import status  # HTTP Status Codes
-<<<<<<< HEAD
+
 from service.model import db, OrderBase 
-=======
+
 from service.model import db, OrderBase, CustomerOrder, Item
 >>>>>>> fb58348 (Item mdel)
 from service.routes import app
