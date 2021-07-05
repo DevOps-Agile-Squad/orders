@@ -59,23 +59,23 @@ from . import app
 ######################################################################
 # LIST ALL orderS
 ######################################################################
-# @app.route("/orders", methods=["GET"])
-# def list_orders():
-#     """Returns all of the orders"""
-#     app.logger.info("Request for order list")
-#     orders = []
-#     category = request.args.get("category")
-#     name = request.args.get("name")
-#     if category:
-#         orders = order.find_by_category(category)
-#     elif name:
-#         orders = order.find_by_name(name)
-#     else:
-#         orders = order.all()
+@app.route("/orders", methods=["GET"])
+def list_orders():
+    """Returns all of the orders"""
+    app.logger.info("Request for order list")
+    orders = []
+    customer_id = request.args.get("customer_id")
+    item = request.args.get("item")
+    if customer_id:
+        orders = CustomerOrder.find_by_customer_id(customer_id)
+    elif item:
+        orders = CustomerOrder.find_by_including_item(item)
+    else:
+        orders = CustomerOrder.all()
 
-#     results = [order.serialize() for order in orders]
-#     app.logger.info("Returning %d orders", len(results))
-#     return make_response(jsonify(results), status.HTTP_200_OK)
+    results = [order.serialize() for order in orders]
+    app.logger.info("Returning %d orders", len(results))
+    return make_response(jsonify(results), status.HTTP_200_OK)
 
 ######################################################################
 # RETRIEVE A CUSTOMERORDER
