@@ -272,20 +272,34 @@ class CustomerOrder(db.Model):
         logger.info("Saving %s", self.id)
         db.session.commit()
 
-    # @classmethod
-    # def find_by_name(cls, name):
-    #     """Returns all Pets with the given name
+    @classmethod
+    def find_by_customer_id(cls, customer_id):
+        """Returns all Pets with the given name
 
-    #     :param name: the name of the Pets you want to match
-    #     :type name: str
+        :param name: the name of the Pets you want to match
+        :type name: str
 
-    #     :return: a collection of Pets with that name
-    #     :rtype: list
+        :return: a collection of Pets with that name
+        :rtype: list
 
-    #     """
-    #     logger.info("Processing name query for %s ...", name)
-    #     return cls.query.filter(cls.name == name)
+        """
+        logger.info("Processing customer_id query for %s ...", customer_id)
+        return cls.query.filter(cls.customer_id == customer_id)
 
+    @classmethod
+    def find_by_including_item(cls, item_name):
+        """Returns all Pets with the given name
+
+        :param name: the name of the Pets you want to match
+        :type name: str
+
+        :return: a collection of Pets with that name
+        :rtype: list
+
+        """
+        logger.info("Processing including item query for %s ...", item_name)
+        return cls.query.filter(cls.items.any(Item.item_name == item_name))
+        
     # @classmethod
     # def find_by_category(cls, category):
     #     """Returns all of the Pets in a category

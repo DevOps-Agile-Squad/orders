@@ -35,7 +35,10 @@ DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgres://postgres:postgres@localhost:5432/testdb"
 )
 
-def MakeItem(id=1, item_name='Egg', quantity=6, price=1, order_id=10):
+TEST_ADDRESS = "random address"
+TEST_ITEM = "Egg"
+
+def MakeItem(id=1, item_name=TEST_ITEM, quantity=6, price=1, order_id=10):
     """Create and item for Order."""
     return Item(id=id, item_name=item_name, quantity=quantity,
         price=price, order_id=order_id)
@@ -76,17 +79,17 @@ class TestCustomerOrderModel(unittest.TestCase):
 
     def test_create_a_customer_order(self):
         """Create a pet and assert that it exists"""
-        order = CustomerOrder(customer_id=13, address="random address", items=[ MakeItem() ])
+        order = CustomerOrder(customer_id=13, address=TEST_ADDRESS, items=[ MakeItem() ])
         self.assertTrue(order != None)
         self.assertEqual(order.id, None)
         self.assertEqual(order.customer_id, 13)
-        self.assertEqual(order.address, "random address")
+        self.assertEqual(order.address, TEST_ADDRESS)
 
     def test_add_a_customer_order(self):
         """Create a pet and add it to the database"""
         orderss = CustomerOrder.all()
         self.assertEqual(orderss, [])
-        order = CustomerOrder(customer_id=13, address="random address", items=[ MakeItem() ])
+        order = CustomerOrder(customer_id=13, address=TEST_ADDRESS, items=[ MakeItem() ])
         self.assertTrue(order != None)
         self.assertEqual(order.id, None)
         order.create()
@@ -134,7 +137,7 @@ class TestCustomerOrderModel(unittest.TestCase):
     def test_deserialize_item_error(self):
         """Test serialization of an item."""
         test_item = Item()
-        self.assertRaises(DataValidationError, test_item.deserialize, {"id": 1, "item_name": "Egg"})
+        self.assertRaises(DataValidationError, test_item.deserialize, {"id": 1, "item_name": TEST_ITEM})
         self.assertRaises(DataValidationError, test_item.deserialize, "Not a dictionary")
 
     def test_serialize_a_customer_order(self):
@@ -154,11 +157,11 @@ class TestCustomerOrderModel(unittest.TestCase):
         data = {
             "id": 1,
             "customer_id": 12,
-            "address": "new address",
+            "address": TEST_ADDRESS,
             "items": [{
                 "id": 1,
                 "price": 1,
-                "item_name": "Egg",
+                "item_name": TEST_ITEM,
                 "quantity": 6,
                 "order_id": 10
             }]
@@ -168,7 +171,7 @@ class TestCustomerOrderModel(unittest.TestCase):
         self.assertNotEqual(order, None)
         self.assertEqual(order.id, None)
         self.assertEqual(order.customer_id, 12)
-        self.assertEqual(order.address, "new address")
+        self.assertEqual(order.address, TEST_ADDRESS)
         self.assertListEqual(order.items, [MakeItem(id=None)])
 
     def test_deserialize_missing_data(self):
@@ -183,7 +186,7 @@ class TestCustomerOrderModel(unittest.TestCase):
         order = CustomerOrder()
         self.assertRaises(DataValidationError, order.deserialize, data)
 
-    def test_find_pet(self):
+    def test_find_customer_order(self):
         """Find a Order by ID"""
         orders = CustomerOrderFactory.create_batch(3)
         for order in orders:
@@ -198,23 +201,25 @@ class TestCustomerOrderModel(unittest.TestCase):
         self.assertEqual(order.customer_id, orders[1].customer_id)
         self.assertEqual(order.address, orders[1].address)
 
-    # def test_find_by_category(self):
-    #     """Find Pets by Category"""
-    #     Pet(name="fido", category="dog", available=True).create()
-    #     Pet(name="kitty", category="cat", available=False).create()
-    #     pets = Pet.find_by_category("cat")
-    #     self.assertEqual(pets[0].category, "cat")
-    #     self.assertEqual(pets[0].name, "kitty")
-    #     self.assertEqual(pets[0].available, False)
+    def test_find_by_customer_id(self):
+        """Find orders by Customer Id"""
+        CustomerOrder(customer_id=1, address=TEST_ADDRESS, items=[MakeItem(id=None)]).create()
+        CustomerOrder(customer_id=1, address=TEST_ADDRESS, items=[MakeItem(id=None)]).create()
+        CustomerOrder(customer_id=2, address=TEST_ADDRESS, items=[MakeItem(id=None)]).create()
+        orders = CustomerOrder.find_by_customer_id(1)
+        order_list = [order for order in orders]
+        self.assertEqual(len(order_list), 2)
+        self.assertEqual(orders[0].customer_id, 1)
+        self.assertEqual(orders[1].customer_id, 1)
 
-    # def test_find_by_name(self):
-    #     """Find a Pet by Name"""
-    #     Pet(name="fido", category="dog", available=True).create()
-    #     Pet(name="kitty", category="cat", available=False).create()
-    #     pets = Pet.find_by_name("kitty")
-    #     self.assertEqual(pets[0].category, "cat")
-    #     self.assertEqual(pets[0].name, "kitty")
-    #     self.assertEqual(pets[0].available, False)
+    def test_find_by_including_item(self):
+        """Find orders by Including Item"""
+        CustomerOrder(customer_id=1, address=TEST_ADDRESS, items=[MakeItem()]).create()
+        orders = CustomerOrder.find_by_including_item(TEST_ITEM)
+        order_list = [order for order in orders]
+        self.assertEqual(len(order_list), 1)
+        self.assertEqual(orders[0].customer_id, 1)
+        self.assertEqual(orders[0].address, TEST_ADDRESS)
 
     # def test_find_by_availability(self):
     #     """Find Pets by Availability"""

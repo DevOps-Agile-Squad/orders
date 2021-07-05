@@ -261,20 +261,20 @@ class TestCustomerOrderServer(unittest.TestCase):
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
         
-    # def test_query_pet_list_by_category(self):
-    #     """Query Pets by Category"""
-    #     pets = self._create_pets(10)
-    #     test_category = pets[0].category
-    #     category_pets = [pet for pet in pets if pet.category == test_category]
+    # def test_query_orders_by_customer_id(self):
+    #     """Query Orders by Customer Id"""
+    #     orders = self._create_orders(10)
+    #     test_customer_id = orders[0].customer_id
+    #     customer_id_orders = [order for order in orders if order.customer_id == test_customer_id]
     #     resp = self.app.get(
-    #         BASE_URL, query_string="category={}".format(quote_plus(test_category))
+    #         BASE_URL, query_string="customer_id={}".format(quote_plus(test_customer_id))
     #     )
     #     self.assertEqual(resp.status_code, status.HTTP_200_OK)
     #     data = resp.get_json()
-    #     self.assertEqual(len(data), len(category_pets))
-    #     # check the data just to be sure
-    #     for pet in data:
-    #         self.assertEqual(pet["category"], test_category)
+    #     self.assertEqual(len(data), len(customer_id_orders))
+    #     check the data just to be sure
+    #     for orders in data:
+    #        self.assertEqual(orders["customer_id"], test_customer_id)
 
     # @patch('service.routes.Pet.find_by_name')
     # def test_bad_request(self, bad_request_mock):
