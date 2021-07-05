@@ -13,14 +13,14 @@
 # limitations under the License.
 
 """
-Test cases for Pet Model
+Test cases for Order Model
 
 Test cases can be run with:
     nosetests
     coverage report -m
 
 While debugging just these tests it's convinient to use this:
-    nosetests --stop tests/test_pets.py:TestPetModel
+    nosetests --stop tests/test_orders.py:TestCustomerOrderModel
 
 """
 import os
@@ -44,7 +44,7 @@ def MakeItem(id=1, item_name=TEST_ITEM, quantity=6, price=1, order_id=10):
         price=price, order_id=order_id)
 
 ######################################################################
-#  P E T   M O D E L   T E S T   C A S E S
+#  O R D E R   M O D E L   T E S T   C A S E S
 ######################################################################
 class TestCustomerOrderModel(unittest.TestCase):
     """Test Cases for Order Model"""
@@ -78,7 +78,7 @@ class TestCustomerOrderModel(unittest.TestCase):
     ######################################################################
 
     def test_create_a_customer_order(self):
-        """Create a pet and assert that it exists"""
+        """Create an order and assert that it exists"""
         order = CustomerOrder(customer_id=13, address=TEST_ADDRESS, items=[ MakeItem() ])
         self.assertTrue(order != None)
         self.assertEqual(order.id, None)
@@ -86,7 +86,7 @@ class TestCustomerOrderModel(unittest.TestCase):
         self.assertEqual(order.address, TEST_ADDRESS)
 
     def test_add_a_customer_order(self):
-        """Create a pet and add it to the database"""
+        """Create an order and add it to the database"""
         orderss = CustomerOrder.all()
         self.assertEqual(orderss, [])
         order = CustomerOrder(customer_id=13, address=TEST_ADDRESS, items=[ MakeItem() ])
@@ -98,7 +98,7 @@ class TestCustomerOrderModel(unittest.TestCase):
         orders = CustomerOrder.all()
         self.assertEqual(len(orders), 1)
 
-    def test_update_a_pet(self):
+    def test_update_a_customer_order(self):
         """Update a CustomerOrder"""
         order = CustomerOrderFactory()
         logging.debug(order)
@@ -123,7 +123,7 @@ class TestCustomerOrderModel(unittest.TestCase):
         order = CustomerOrderFactory()
         order.create()
         self.assertEqual(len(CustomerOrder.all()), 1)
-        # delete the pet and make sure it isn't in the database
+        # delete the order and make sure it isn't in the database
         order.delete()
         self.assertEqual(len(CustomerOrder.all()), 0)
 
@@ -187,14 +187,14 @@ class TestCustomerOrderModel(unittest.TestCase):
         self.assertRaises(DataValidationError, order.deserialize, data)
 
     def test_find_customer_order(self):
-        """Find a Order by ID"""
+        """Find an Order by ID"""
         orders = CustomerOrderFactory.create_batch(3)
         for order in orders:
             order.create()
         logging.debug(orders)
         # make sure they got saved
         self.assertEqual(len(order.all()), 3)
-        # find the 2nd pet in the list
+        # find the 2nd order in the list
         order = CustomerOrder.find(orders[1].id)
         self.assertIsNot(order, None)
         self.assertEqual(order.id, orders[1].id)

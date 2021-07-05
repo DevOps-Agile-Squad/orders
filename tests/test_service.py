@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """
-Pet API Service Test Suite
+Orders API Service Test Suite
 
 Test cases can be run with the following:
   nosetests -v --with-spec --spec-color
@@ -21,7 +21,7 @@ Test cases can be run with the following:
   codecov --token=$CODECOV_TOKEN
 
   While debugging just these tests it's convinient to use this:
-    nosetests --stop tests/test_service.py:TestPetServer
+    nosetests --stop tests/test_service.py:TestCustomerOrderServer
 """
 
 import os
@@ -190,7 +190,7 @@ class TestCustomerOrderServer(unittest.TestCase):
 
     def test_update_order(self):
         """Update an existing CustomerOrder"""
-        # create a pet to update
+        # create an order to update
         test_order = CustomerOrderFactory()
         resp = self.app.post(
             BASE_URL, json=test_order.serialize(), content_type=CONTENT_TYPE_JSON
