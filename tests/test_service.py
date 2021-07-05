@@ -52,7 +52,7 @@ CONTENT_TYPE_JSON = "application/json"
 #  T E S T   C A S E S
 ######################################################################
 class TestCustomerOrderServer(unittest.TestCase):
-    """Pet Server Tests"""
+    """Orders Server Tests"""
 
     @classmethod
     def setUpClass(cls):
@@ -102,13 +102,13 @@ class TestCustomerOrderServer(unittest.TestCase):
     #     data = resp.get_json()
     #     self.assertEqual(data["name"], "Order Demo REST API Service")
 
-    # def test_get_pet_list(self):
-    #     """Get a list of Pets"""
-    #     self._create_pets(5)
-    #     resp = self.app.get(BASE_URL)
-    #     self.assertEqual(resp.status_code, status.HTTP_200_OK)
-    #     data = resp.get_json()
-    #     self.assertEqual(len(data), 5)
+    def test_get_orders_list(self):
+        """Get a list of orders"""
+        self._create_orders(5)
+        resp = self.app.get("/orders")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(len(data), 5)
 
     def test_get_order(self):
         """Get a single order"""
