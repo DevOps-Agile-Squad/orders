@@ -17,11 +17,11 @@ Test Factory to make fake objects for testing
 """
 import factory
 from factory.fuzzy import FuzzyChoice
-from service.models import CustomerOrder
+from service.models import CustomerOrder, Item, Status
 
 
 class CustomerOrderFactory(factory.Factory):
-    """Creates fake pets that you don't have to feed"""
+    """Generate fake CustomerOrder objects"""
 
     class Meta:
         model = CustomerOrder
@@ -29,8 +29,10 @@ class CustomerOrderFactory(factory.Factory):
     id = factory.Sequence(lambda n: n)
     customer_id = factory.Sequence(lambda n: n)
     address = factory.Faker("address")
-    # address_line2 = factory.Faker("address")
-    # city = factory.Faker("city")
-    # state = factory.Faker("state")
-    # zip_code = factory.Faker("zipcode")
-    # status = FuzzyChoice(choices=["pending", "completed", "canceled"])
+    status = FuzzyChoice(choices=[Status.Received, Status.Processing,
+                         Status.Completed, Status.Cancelled, Status.Returned])
+
+
+class ItemFactory(factory.Factory):
+    """Generate fake items"""
+    pass

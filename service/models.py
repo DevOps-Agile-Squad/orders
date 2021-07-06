@@ -26,6 +26,7 @@ CustomerOrder - An order object containing all the items in a customer order.
     customer_id (integer) - the id of the customer
     address (string) - the shipping address of the order
     items (relationship) - collections of items that are inside the order
+    status (enum) - the status of the order (received, processing, cancelled, etc.)
 
 Item - An item object represents the product in an order.
 
@@ -55,6 +56,15 @@ class DataValidationError(Exception):
     """Used for an data validation errors when deserializing"""
 
     pass
+
+class Status(Enum):
+    """Enumeration of valid Order Status"""
+
+    Received = 0
+    Processing = 1
+    Completed = 2
+    Cancelled = 3
+    Returned = 4
 
 
 ######################################################################
@@ -124,7 +134,7 @@ class Item(db.Model):
             raise DataValidationError("Invalid Item: missing " + error.args[0])
         except TypeError as error:
             raise DataValidationError(
-                "Invalid Item: details of item contained"  "bad or no data"
+                "Invalid Item: details of item contained bad or no data"
             )
         return self
 
@@ -147,14 +157,16 @@ class CustomerOrder(db.Model):
     customer_id = db.Column(db.Integer, nullable=False)
     address = db.Column(db.String(256), nullable=False)
     items = db.relationship('Item', backref='order', lazy=True, cascade="all, delete")
-
+    status = db.Column(
+        db.Enum(Status), nullable=False, server_default=(Status.Received.name)
+    )
 
     ##################################################
     # INSTANCE METHODS
     ##################################################
 
     def __repr__(self):
-        return f"Order {self.id} by Customer {self.customer_id} with address: {self.address}"
+        return f"Order {self.id} by Customer {self.customer_id} with address: {self.address}. Status: [{self.status.name}]"
 
     def create(self):
         """
@@ -186,7 +198,8 @@ class CustomerOrder(db.Model):
             "id": self.id,
             "customer_id": self.customer_id,
             "address": self.address,
-            "items": []
+            "items": [],
+            "status": self.status.name, # convert enum to string
         }
         for item in self.items:
             order["items"].append(item.serialize())
@@ -212,6 +225,7 @@ class CustomerOrder(db.Model):
                     item = Item()
                     item.deserialize(item_str)
                     self.items.append(item)
+            self.status = getattr(Status, data["status"])   # create enum from string
         except KeyError as error:
             raise DataValidationError("Invalid order: missing " + error.args[0])
         except TypeError as error:
