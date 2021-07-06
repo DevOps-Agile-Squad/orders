@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """
-Pet API Service Test Suite
+Orders API Service Test Suite
 
 Test cases can be run with the following:
   nosetests -v --with-spec --spec-color
@@ -21,7 +21,7 @@ Test cases can be run with the following:
   codecov --token=$CODECOV_TOKEN
 
   While debugging just these tests it's convinient to use this:
-    nosetests --stop tests/test_service.py:TestPetServer
+    nosetests --stop tests/test_service.py:TestCustomerOrderServer
 """
 
 import os
@@ -52,7 +52,7 @@ CONTENT_TYPE_JSON = "application/json"
 #  T E S T   C A S E S
 ######################################################################
 class TestCustomerOrderServer(unittest.TestCase):
-    """Pet Server Tests"""
+    """Orders Server Tests"""
 
     @classmethod
     def setUpClass(cls):
@@ -102,20 +102,20 @@ class TestCustomerOrderServer(unittest.TestCase):
     #     data = resp.get_json()
     #     self.assertEqual(data["name"], "Order Demo REST API Service")
 
-    # def test_get_pet_list(self):
-    #     """Get a list of Pets"""
-    #     self._create_pets(5)
-    #     resp = self.app.get(BASE_URL)
-    #     self.assertEqual(resp.status_code, status.HTTP_200_OK)
-    #     data = resp.get_json()
-    #     self.assertEqual(len(data), 5)
+    def test_get_orders_list(self):
+        """Get a list of orders"""
+        self._create_orders(5)
+        resp = self.app.get(BASE_URL)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(len(data), 5)
 
     def test_get_order(self):
         """Get a single order"""
         # get the id of a order
         test_order = self._create_orders(1)[0]
         resp = self.app.get(
-            "/orders/{}".format(test_order.id), content_type=CONTENT_TYPE_JSON
+            "{0}/{1}".format(BASE_URL, test_order.id), content_type=CONTENT_TYPE_JSON
         )
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         data = resp.get_json()
@@ -123,7 +123,7 @@ class TestCustomerOrderServer(unittest.TestCase):
 
     def test_get_order_not_found(self):
         """Get a order thats not found"""
-        resp = self.app.get("/orderss/0")
+        resp = self.app.get("{}/0".format(BASE_URL))
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_create_order(self):
@@ -164,7 +164,7 @@ class TestCustomerOrderServer(unittest.TestCase):
         new_order = resp.get_json()
 
         resp = self.app.post(
-            "/orders/{}/items".format(new_order["id"]),
+            "{0}/{1}/items".format(BASE_URL, new_order["id"]),
             json=Item(id=None, item_name='Egg', quantity=6,
                       price=1, order_id=new_order["id"]).serialize(),
             content_type=CONTENT_TYPE_JSON
@@ -174,23 +174,23 @@ class TestCustomerOrderServer(unittest.TestCase):
     def test_create_order_error(self):
         """Test that invalid content type are ignored."""
         resp = self.app.post(
-            '/orders', data='Non JSON data type',
+            BASE_URL, data='Non JSON data type',
             content_type="application/x-www-form-urlencoded")
         self.assertEqual(resp.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
 
-    # def test_create_pet_no_data(self):
-    #     """Create a Pet with missing data"""
-    #     resp = self.app.post(BASE_URL, json={}, content_type=CONTENT_TYPE_JSON)
-    #     self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+    def test_create_order_no_data(self):
+        """Create an order with missing data"""
+        resp = self.app.post(BASE_URL, json={}, content_type=CONTENT_TYPE_JSON)
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
-    # def test_create_pet_no_content_type(self):
-    #     """Create a Pet with no content type"""
-    #     resp = self.app.post(BASE_URL)
-    #     self.assertEqual(resp.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
+    def test_create_order_no_content_type(self):
+        """Create an Order with no content type"""
+        resp = self.app.post(BASE_URL)
+        self.assertEqual(resp.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
 
     def test_update_order(self):
         """Update an existing CustomerOrder"""
-        # create a pet to update
+        # create an order to update
         test_order = CustomerOrderFactory()
         resp = self.app.post(
             BASE_URL, json=test_order.serialize(), content_type=CONTENT_TYPE_JSON
@@ -202,7 +202,7 @@ class TestCustomerOrderServer(unittest.TestCase):
         logging.debug(new_order)
         new_order["address"] = "new"
         resp = self.app.put(
-            "/orders/{}".format(new_order["id"]),
+            "{0}/{1}".format(BASE_URL ,new_order["id"]),
             json=new_order,
             content_type=CONTENT_TYPE_JSON,
         )
@@ -212,7 +212,7 @@ class TestCustomerOrderServer(unittest.TestCase):
 
         test_order.id = 0
         resp = self.app.put(
-            "/orders/{}".format(test_order.id),
+            "{0}/{1}".format(BASE_URL, test_order.id),
             json=test_order.serialize(),
             content_type=CONTENT_TYPE_JSON,
         )
@@ -240,7 +240,7 @@ class TestCustomerOrderServer(unittest.TestCase):
         test_order = test_orders[0]
         test_item = {"id": 2, "order_id": test_order.id, "quantity": 3, "price": 2.99, "item_name": "test item"}
         resp = self.app.post(
-            f"/orders/{test_order.id}/items", 
+            f"{BASE_URL}/{test_order.id}/items", 
             json=test_item,
             content_type=CONTENT_TYPE_JSON
         )
@@ -254,27 +254,87 @@ class TestCustomerOrderServer(unittest.TestCase):
         resp = self.app.delete(f"orders/{test_orders[1].id}/items/{returned_item.id}")
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
         
-        resp = self.app.delete(f"/orders/{returned_item.order_id}/items/{returned_item.id}", content_type=CONTENT_TYPE_JSON)
+        resp = self.app.delete(f"{BASE_URL}/{returned_item.order_id}/items/{returned_item.id}", content_type=CONTENT_TYPE_JSON)
         self.assertEqual(len(CustomerOrder.find(returned_item.order_id).items), 0)
 
-        resp = self.app.delete("/orders/0/items/13", content_type=CONTENT_TYPE_JSON)
+        resp = self.app.delete(f"{BASE_URL}/0/items/13", content_type=CONTENT_TYPE_JSON)
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
         
-    # def test_query_orders_by_customer_id(self):
-    #     """Query Orders by Customer Id"""
-    #     orders = self._create_orders(10)
-    #     test_customer_id = orders[0].customer_id
-    #     customer_id_orders = [order for order in orders if order.customer_id == test_customer_id]
-    #     resp = self.app.get(
-    #         BASE_URL, query_string="customer_id={}".format(quote_plus(test_customer_id))
-    #     )
-    #     self.assertEqual(resp.status_code, status.HTTP_200_OK)
-    #     data = resp.get_json()
-    #     self.assertEqual(len(data), len(customer_id_orders))
-    #     check the data just to be sure
-    #     for orders in data:
-    #        self.assertEqual(orders["customer_id"], test_customer_id)
+    def test_query_orders_by_customer_id(self):
+        """Query Orders by Customer Id"""
+        orders = self._create_orders(10)
+        test_customer_id = orders[0].customer_id
+        customer_id_orders = [order for order in orders if order.customer_id == test_customer_id]
+        resp = self.app.get(
+            BASE_URL, query_string="customer_id={}".format(test_customer_id)
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(len(data), len(customer_id_orders))
+        # check the data just to be sure
+        for orders in data:
+           self.assertEqual(orders["customer_id"], test_customer_id)
+
+    def test_query_orders_by_item(self):
+        """Query Orders by item name"""
+        orders = self._create_orders(3)
+        order_1 = orders[0]
+        order_2 = orders[1]
+        order_3 = orders[2]
+        test_item_1 = {"id": 1, "order_id": order_1.id,
+                       "quantity": 3, "price": 4, "item_name": "Foo"}
+        test_item_2 = {"id": 2, "order_id": order_2.id,
+                       "quantity": 3, "price": 4, "item_name": "Foo"}
+        test_item_3 = {"id": 1, "order_id": order_1.id,
+                       "quantity": 1, "price": 5, "item_name": "Bar"}
+        test_item_4 = {"id": 1, "order_id": order_3.id,
+                       "quantity": 2, "price": 5, "item_name": "Bar"}
+
+        # add Foo to order_1
+        resp = self.app.post(
+            f"{BASE_URL}/{order_1.id}/items",
+            json=test_item_1,
+            content_type=CONTENT_TYPE_JSON
+        )
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+
+        # add Bar to order_1
+        resp = self.app.post(
+            f"{BASE_URL}/{order_1.id}/items",
+            json=test_item_3,
+            content_type=CONTENT_TYPE_JSON
+        )
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+
+        # add Foo to order_2
+        resp = self.app.post(
+            f"{BASE_URL}/{order_2.id}/items",
+            json=test_item_2,
+            content_type=CONTENT_TYPE_JSON
+        )
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+
+        # add Bar to order_3
+        resp = self.app.post(
+            f"{BASE_URL}/{order_3.id}/items",
+            json=test_item_4,
+            content_type=CONTENT_TYPE_JSON
+        )
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+
+        # test query Foo
+        resp = self.app.get(
+            BASE_URL, query_string="item={}".format(quote_plus("Foo"))
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEquals(len(data),2)
+
+    def test_method_not_allowed(self):
+        """Testing unsupported request type"""
+        resp = self.app.post(f'{BASE_URL}/42')
+        self.assertEqual(resp.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     # @patch('service.routes.Pet.find_by_name')
     # def test_bad_request(self, bad_request_mock):

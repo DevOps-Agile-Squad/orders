@@ -13,20 +13,28 @@
 # limitations under the License.
 
 """
-Models for order Demo Service
+Models for orders Service
 
 All of the models are stored in this module
 
 Models
 ------
-order - A order used in the order Store
+CustomerOrder - An order object containing all the items in a customer order.
 
-Attributes:
------------
-name (string) - the name of the order
-category (string) - the category the order belongs to (i.e., dog, cat)
-available (boolean) - True for orders that are available for adoption
+    Attributes:
+    -----------
+    customer_id (integer) - the id of the customer
+    address (string) - the shipping address of the order
+    items (relationship) - collections of items that are inside the order
 
+Item - An item object represents the product in an order.
+
+    Attributes:
+    -----------
+    order_id (fk integer) - the order number that the item is associated with
+    quantity (integer) - the quantity of this item in the order
+    price (integer) - the price of the product
+    item_name (integer) - the name of the product
 """
 import logging
 from enum import Enum
@@ -70,7 +78,7 @@ class Item(db.Model):
             (self.order_id == other.order_id) and
             (self.quantity == other.quantity) and
             (self.price == other.price))
-    
+
     @classmethod
     def find(cls, item_id):
         """Finds an item by its ID
@@ -84,7 +92,7 @@ class Item(db.Model):
         """
         logger.info("Processing lookup for id %s ...", item_id)
         return cls.query.get(item_id)
-    
+
     def delete(self):
         """Removes an item from the data store"""
         logger.info(f"Deleting order {self.id}")
@@ -139,7 +147,7 @@ class CustomerOrder(db.Model):
     customer_id = db.Column(db.Integer, nullable=False)
     address = db.Column(db.String(256), nullable=False)
     items = db.relationship('Item', backref='order', lazy=True, cascade="all, delete")
-    
+
 
     ##################################################
     # INSTANCE METHODS
@@ -274,12 +282,12 @@ class CustomerOrder(db.Model):
 
     @classmethod
     def find_by_customer_id(cls, customer_id):
-        """Returns all Pets with the given name
+        """Returns all orders with the given customer_id
 
-        :param name: the name of the Pets you want to match
-        :type name: str
+        :param customer_id: the id of the customer you want to match
+        :type customer_id: integer
 
-        :return: a collection of Pets with that name
+        :return: a collection of orders with that customer
         :rtype: list
 
         """
@@ -288,18 +296,18 @@ class CustomerOrder(db.Model):
 
     @classmethod
     def find_by_including_item(cls, item_name):
-        """Returns all Pets with the given name
+        """Returns all orders with the given item name
 
-        :param name: the name of the Pets you want to match
+        :param item_name: the name of the item you want to match
         :type name: str
 
-        :return: a collection of Pets with that name
+        :return: a collection of coders with that item inside
         :rtype: list
 
         """
         logger.info("Processing including item query for %s ...", item_name)
         return cls.query.filter(cls.items.any(Item.item_name == item_name))
-        
+
     # @classmethod
     # def find_by_category(cls, category):
     #     """Returns all of the Pets in a category
