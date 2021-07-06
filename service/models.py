@@ -78,7 +78,7 @@ class Item(db.Model):
             (self.order_id == other.order_id) and
             (self.quantity == other.quantity) and
             (self.price == other.price))
-    
+
     @classmethod
     def find(cls, item_id):
         """Finds an item by its ID
@@ -92,7 +92,7 @@ class Item(db.Model):
         """
         logger.info("Processing lookup for id %s ...", item_id)
         return cls.query.get(item_id)
-    
+
     def delete(self):
         """Removes an item from the data store"""
         logger.info(f"Deleting order {self.id}")
@@ -147,7 +147,7 @@ class CustomerOrder(db.Model):
     customer_id = db.Column(db.Integer, nullable=False)
     address = db.Column(db.String(256), nullable=False)
     items = db.relationship('Item', backref='order', lazy=True, cascade="all, delete")
-    
+
 
     ##################################################
     # INSTANCE METHODS
@@ -282,12 +282,12 @@ class CustomerOrder(db.Model):
 
     @classmethod
     def find_by_customer_id(cls, customer_id):
-        """Returns all Pets with the given name
+        """Returns all orders with the given customer_id
 
-        :param name: the name of the Pets you want to match
-        :type name: str
+        :param customer_id: the id of the customer you want to match
+        :type customer_id: integer
 
-        :return: a collection of Pets with that name
+        :return: a collection of orders with that customer
         :rtype: list
 
         """
@@ -296,18 +296,18 @@ class CustomerOrder(db.Model):
 
     @classmethod
     def find_by_including_item(cls, item_name):
-        """Returns all Pets with the given name
+        """Returns all orders with the given item name
 
-        :param name: the name of the Pets you want to match
+        :param item_name: the name of the item you want to match
         :type name: str
 
-        :return: a collection of Pets with that name
+        :return: a collection of coders with that item inside
         :rtype: list
 
         """
         logger.info("Processing including item query for %s ...", item_name)
         return cls.query.filter(cls.items.any(Item.item_name == item_name))
-        
+
     # @classmethod
     # def find_by_category(cls, category):
     #     """Returns all of the Pets in a category
