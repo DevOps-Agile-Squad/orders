@@ -57,7 +57,7 @@ from . import app
 
 
 ######################################################################
-# LIST ALL orderS
+# LIST ALL CUSTOMER ORDERS
 ######################################################################
 @app.route("/orders", methods=["GET"])
 def list_orders():
@@ -78,7 +78,7 @@ def list_orders():
     return make_response(jsonify(results), status.HTTP_200_OK)
 
 ######################################################################
-# RETRIEVE A CUSTOMERORDER
+# RETRIEVE A CUSTOMER ORDER
 ######################################################################
 @app.route("/orders/<int:order_id>", methods=["GET"])
 def get_order(order_id):
@@ -135,7 +135,7 @@ def create_order():
 
 
 ######################################################################
-# UPDATE AN EXISTING order
+# UPDATE AN EXISTING ORDER
 ######################################################################
 @app.route("/orders/<int:order_id>", methods=["PUT"])
 def update_orders(order_id):
@@ -158,7 +158,7 @@ def update_orders(order_id):
 
 
 ######################################################################
-# DELETE A order
+# DELETE A ORDER
 ######################################################################
 @app.route("/orders/<int:order_id>", methods=["DELETE"])
 def delete_orders(order_id):
