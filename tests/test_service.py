@@ -105,7 +105,7 @@ class TestCustomerOrderServer(unittest.TestCase):
     def test_get_orders_list(self):
         """Get a list of orders"""
         self._create_orders(5)
-        resp = self.app.get("/orders")
+        resp = self.app.get(BASE_URL)
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         data = resp.get_json()
         self.assertEqual(len(data), 5)
@@ -115,7 +115,7 @@ class TestCustomerOrderServer(unittest.TestCase):
         # get the id of a order
         test_order = self._create_orders(1)[0]
         resp = self.app.get(
-            "/orders/{}".format(test_order.id), content_type=CONTENT_TYPE_JSON
+            "{0}/{1}".format(BASE_URL, test_order.id), content_type=CONTENT_TYPE_JSON
         )
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         data = resp.get_json()
@@ -123,7 +123,7 @@ class TestCustomerOrderServer(unittest.TestCase):
 
     def test_get_order_not_found(self):
         """Get a order thats not found"""
-        resp = self.app.get("/orderss/0")
+        resp = self.app.get("{}/0".format(BASE_URL))
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_create_order(self):
@@ -164,7 +164,7 @@ class TestCustomerOrderServer(unittest.TestCase):
         new_order = resp.get_json()
 
         resp = self.app.post(
-            "/orders/{}/items".format(new_order["id"]),
+            "{0}/{1}/items".format(BASE_URL, new_order["id"]),
             json=Item(id=None, item_name='Egg', quantity=6,
                       price=1, order_id=new_order["id"]).serialize(),
             content_type=CONTENT_TYPE_JSON
@@ -174,18 +174,18 @@ class TestCustomerOrderServer(unittest.TestCase):
     def test_create_order_error(self):
         """Test that invalid content type are ignored."""
         resp = self.app.post(
-            '/orders', data='Non JSON data type',
+            BASE_URL, data='Non JSON data type',
             content_type="application/x-www-form-urlencoded")
         self.assertEqual(resp.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
 
     def test_create_order_no_data(self):
         """Create an order with missing data"""
-        resp = self.app.post("/orders", json={}, content_type=CONTENT_TYPE_JSON)
+        resp = self.app.post(BASE_URL, json={}, content_type=CONTENT_TYPE_JSON)
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_create_order_no_content_type(self):
         """Create an Order with no content type"""
-        resp = self.app.post("/orders")
+        resp = self.app.post(BASE_URL)
         self.assertEqual(resp.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
 
     def test_update_order(self):
@@ -202,7 +202,7 @@ class TestCustomerOrderServer(unittest.TestCase):
         logging.debug(new_order)
         new_order["address"] = "new"
         resp = self.app.put(
-            "/orders/{}".format(new_order["id"]),
+            "{0}/{1}".format(BASE_URL ,new_order["id"]),
             json=new_order,
             content_type=CONTENT_TYPE_JSON,
         )
@@ -212,7 +212,7 @@ class TestCustomerOrderServer(unittest.TestCase):
 
         test_order.id = 0
         resp = self.app.put(
-            "/orders/{}".format(test_order.id),
+            "{0}/{1}".format(BASE_URL, test_order.id),
             json=test_order.serialize(),
             content_type=CONTENT_TYPE_JSON,
         )
@@ -240,7 +240,7 @@ class TestCustomerOrderServer(unittest.TestCase):
         test_order = test_orders[0]
         test_item = {"id": 2, "order_id": test_order.id, "quantity": 3, "price": 2.99, "item_name": "test item"}
         resp = self.app.post(
-            f"/orders/{test_order.id}/items", 
+            f"{BASE_URL}/{test_order.id}/items", 
             json=test_item,
             content_type=CONTENT_TYPE_JSON
         )
@@ -254,10 +254,10 @@ class TestCustomerOrderServer(unittest.TestCase):
         resp = self.app.delete(f"orders/{test_orders[1].id}/items/{returned_item.id}")
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
         
-        resp = self.app.delete(f"/orders/{returned_item.order_id}/items/{returned_item.id}", content_type=CONTENT_TYPE_JSON)
+        resp = self.app.delete(f"{BASE_URL}/{returned_item.order_id}/items/{returned_item.id}", content_type=CONTENT_TYPE_JSON)
         self.assertEqual(len(CustomerOrder.find(returned_item.order_id).items), 0)
 
-        resp = self.app.delete("/orders/0/items/13", content_type=CONTENT_TYPE_JSON)
+        resp = self.app.delete(f"{BASE_URL}/0/items/13", content_type=CONTENT_TYPE_JSON)
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
         
@@ -267,7 +267,7 @@ class TestCustomerOrderServer(unittest.TestCase):
         test_customer_id = orders[0].customer_id
         customer_id_orders = [order for order in orders if order.customer_id == test_customer_id]
         resp = self.app.get(
-            "/orders", query_string="customer_id={}".format(test_customer_id)
+            BASE_URL, query_string="customer_id={}".format(test_customer_id)
         )
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         data = resp.get_json()
@@ -293,7 +293,7 @@ class TestCustomerOrderServer(unittest.TestCase):
 
         # add Foo to order_1
         resp = self.app.post(
-            f"/orders/{order_1.id}/items",
+            f"{BASE_URL}/{order_1.id}/items",
             json=test_item_1,
             content_type=CONTENT_TYPE_JSON
         )
@@ -301,7 +301,7 @@ class TestCustomerOrderServer(unittest.TestCase):
 
         # add Bar to order_1
         resp = self.app.post(
-            f"/orders/{order_1.id}/items",
+            f"{BASE_URL}/{order_1.id}/items",
             json=test_item_3,
             content_type=CONTENT_TYPE_JSON
         )
@@ -309,7 +309,7 @@ class TestCustomerOrderServer(unittest.TestCase):
 
         # add Foo to order_2
         resp = self.app.post(
-            f"/orders/{order_2.id}/items",
+            f"{BASE_URL}/{order_2.id}/items",
             json=test_item_2,
             content_type=CONTENT_TYPE_JSON
         )
@@ -317,7 +317,7 @@ class TestCustomerOrderServer(unittest.TestCase):
 
         # add Bar to order_3
         resp = self.app.post(
-            f"/orders/{order_3.id}/items",
+            f"{BASE_URL}/{order_3.id}/items",
             json=test_item_4,
             content_type=CONTENT_TYPE_JSON
         )
@@ -325,7 +325,7 @@ class TestCustomerOrderServer(unittest.TestCase):
 
         # test query Foo
         resp = self.app.get(
-            "/orders", query_string="item={}".format(quote_plus("Foo"))
+            BASE_URL, query_string="item={}".format(quote_plus("Foo"))
         )
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         data = resp.get_json()
@@ -333,7 +333,7 @@ class TestCustomerOrderServer(unittest.TestCase):
 
     def test_method_not_allowed(self):
         """Testing unsupported request type"""
-        resp = self.app.post('/orders/42')
+        resp = self.app.post(f'{BASE_URL}/42')
         self.assertEqual(resp.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     # @patch('service.routes.Pet.find_by_name')
