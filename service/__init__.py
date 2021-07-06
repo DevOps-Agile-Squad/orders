@@ -46,7 +46,7 @@ if __name__ != "__main__":
     app.logger.info("Logging handler established")
 
 app.logger.info(70 * "*")
-app.logger.info("  P E T   S T O R E   S E R V I C E  ".center(70, "*"))
+app.logger.info("  O R D E R S   S E R V I C E  ".center(70, "*"))
 app.logger.info(70 * "*")
 
 try:
@@ -56,4 +56,4 @@ except Exception as error:
     # gunicorn requires exit code 4 to stop spawning workers when they die
     sys.exit(4)
 
-app.logger.info("Service inititalized!")
+app.logger.info("Service initialized!")
