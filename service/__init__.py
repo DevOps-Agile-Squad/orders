@@ -24,21 +24,22 @@ import logging
 from flask import Flask
 
 # Create Flask application
-app = Flask(__name__)
+app = Flask(__name__)  # pylint: disable=invalid-name
 app.config.from_object("config")
 
-# Import the rutes After the Flask app is created
-from service import routes, models, error_handlers
+# Import the routes After the Flask app is created
+from service import routes, models, error_handlers # pylint: disable=wrong-import-position
 
 # Set up logging for production
 print("Setting up logging for {}...".format(__name__))
 app.logger.propagate = False
 if __name__ != "__main__":
-    gunicorn_logger = logging.getLogger("gunicorn.error")
+    gunicorn_logger = logging.getLogger(  # pylint: disable=invalid-name
+        "gunicorn.error")
     app.logger.handlers = gunicorn_logger.handlers
     app.logger.setLevel(gunicorn_logger.level)
     # Make all log formats consistent
-    formatter = logging.Formatter(
+    formatter = logging.Formatter(  # pylint: disable=invalid-name
         "[%(asctime)s] [%(levelname)s] [%(module)s] %(message)s", "%Y-%m-%d %H:%M:%S %z"
     )
     for handler in app.logger.handlers:
@@ -51,7 +52,7 @@ app.logger.info(70 * "*")
 
 try:
     models.init_db(app)  # make our sqlalchemy tables
-except Exception as error:
+except Exception as error:  # pylint: disable=broad-except
     app.logger.critical("%s: Cannot continue", error)
     # gunicorn requires exit code 4 to stop spawning workers when they die
     sys.exit(4)

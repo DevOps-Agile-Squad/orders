@@ -21,14 +21,16 @@ GET /orders - Returns a list all of the orders
 GET /orders/{id} - Returns the order with a given id number
 POST /orders - creates a new order record in the database
 PUT /orders/{id} - updates a order record in the database
+POST /orders/{id}/items - adds an item to the order
 DELETE /orders/{id} - deletes a order record in the database
+DELETE /orders/{order_id}/items/{item_id}> - deletes the item in the order
+POST /orders/{id}/cancel - cancels the order (change status to Cancelled)
 """
 
 import os
 import sys
 import logging
 from flask import Flask, jsonify, request, url_for, make_response, abort
-from . import status  # HTTP Status Codes
 from werkzeug.exceptions import NotFound
 
 # For this example we'll use SQLAlchemy, a popular ORM that supports a
@@ -38,6 +40,7 @@ from service.models import CustomerOrder, Item, DataValidationError, Status
 
 # Import Flask application
 from . import app
+from . import status  # HTTP Status Codes
 
 ######################################################################
 # GET INDEX
@@ -77,6 +80,7 @@ def list_orders():
     app.logger.info("Returning %d orders", len(results))
     return make_response(jsonify(results), status.HTTP_200_OK)
 
+
 ######################################################################
 # RETRIEVE A CUSTOMER ORDER
 ######################################################################
@@ -93,6 +97,7 @@ def get_order(order_id):
 
     app.logger.info("Returning order: %s", order_id)
     return make_response(jsonify(order.serialize()), status.HTTP_200_OK)
+
 
 ######################################################################
 # ADD ITEM TO A CUSTOMER ORDER
@@ -188,13 +193,14 @@ def delete_items(order_id, item_id):
     """
     app.logger.info(f"Request to delete item with id {item_id}")
     order = CustomerOrder.find(order_id)
-    if order is None: 
+    if order is None:
         return make_response(f"Order with id {order_id} is not found", status.HTTP_404_NOT_FOUND)
     item = Item.find(item_id)
 
     if item is not None:
         if item.order_id != order_id:
-            return make_response(f"Item with id {item.order_id} is not in order with id {order_id}", status.HTTP_404_NOT_FOUND)
+            return make_response(f"Item with id {item.order_id} is not in order with id {order_id}",
+                                 status.HTTP_404_NOT_FOUND)
         item.delete()
     app.logger.info(f"item with id {item_id} delete complete")
     return make_response("", status.HTTP_204_NO_CONTENT)
@@ -216,7 +222,8 @@ def cancel_orders(order_id):
         return make_response(f"Order with id {order_id} is not found", status.HTTP_404_NOT_FOUND)
 
     if order.status == Status.Completed or order.status == Status.Returned:
-        return make_response(f"Order with id {order_id} is [{order.status.name}], request refused.", status.HTTP_400_BAD_REQUEST)
+        return make_response(f"Order with id {order_id} is [{order.status.name}], request refused.",
+                             status.HTTP_400_BAD_REQUEST)
 
     if order.status == Status.Cancelled:
         return make_response(f"Order with id {order_id} is already cancelled.", status.HTTP_200_OK)
@@ -224,8 +231,8 @@ def cancel_orders(order_id):
     order.id = order_id
     order.status = Status.Cancelled
     order.save()
-    app.logger.info(f"Notify Shipping to cancel shipment...")
-    app.logger.info(f"Notify Billing to refund payment...")
+    app.logger.info("Notify Shipping to cancel shipment...")
+    app.logger.info("Notify Billing to refund payment...")
     app.logger.info(f"Order with id {order_id} cancelled successfully.")
     return make_response(jsonify(order.serialize()), status.HTTP_200_OK)
 
