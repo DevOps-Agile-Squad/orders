@@ -31,7 +31,7 @@ import unittest
 # from unittest.mock import MagicMock, patch
 from urllib.parse import quote_plus
 from service import status  # HTTP Status Codes
-from service.models import db, init_db, Item, CustomerOrder
+from service.models import db, init_db, Item, CustomerOrder, Status
 from service.routes import app
 from .factories import CustomerOrderFactory
 from werkzeug.exceptions import NotFound
@@ -218,8 +218,6 @@ class TestCustomerOrderServer(unittest.TestCase):
         )
         self.assertRaises(NotFound)
 
-
-
     def test_delete_order(self):
         """Delete a order"""
         test_order = self._create_orders(1)[0]
@@ -233,7 +231,7 @@ class TestCustomerOrderServer(unittest.TestCase):
             "{0}/{1}".format(BASE_URL, test_order.id), content_type=CONTENT_TYPE_JSON
         )
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
-    
+
     def test_delete_item(self):
         """Delete an item"""
         test_orders = self._create_orders(2)
@@ -253,14 +251,13 @@ class TestCustomerOrderServer(unittest.TestCase):
 
         resp = self.app.delete(f"orders/{test_orders[1].id}/items/{returned_item.id}")
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
-        
+
         resp = self.app.delete(f"{BASE_URL}/{returned_item.order_id}/items/{returned_item.id}", content_type=CONTENT_TYPE_JSON)
         self.assertEqual(len(CustomerOrder.find(returned_item.order_id).items), 0)
 
         resp = self.app.delete(f"{BASE_URL}/0/items/13", content_type=CONTENT_TYPE_JSON)
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
-        
     def test_query_orders_by_customer_id(self):
         """Query Orders by Customer Id"""
         orders = self._create_orders(10)
@@ -330,6 +327,99 @@ class TestCustomerOrderServer(unittest.TestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         data = resp.get_json()
         self.assertEquals(len(data),2)
+
+    def test_cancel_order_not_found(self):
+        """Cancelling order not exists"""
+        resp = self.app.post(f"{BASE_URL}/1/cancel")
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_cancel_order_not_allowed(self):
+        """Cancelling order with invalid status (Completed/Returned)"""
+
+        # test cancel completed order
+        completed_order = CustomerOrderFactory()
+        completed_order.status = Status.Completed # change status to Completed
+        resp = self.app.post(
+            BASE_URL, json=completed_order.serialize(), content_type=CONTENT_TYPE_JSON
+        )
+        data = resp.get_json()
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(data["status"], Status.Completed.name)
+        logging.debug(completed_order)
+        # try cancelling a completed order
+        completed_order.id = data["id"]
+        resp = self.app.post(f"{BASE_URL}/{completed_order.id}/cancel")
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+        # try get the order back and check for status
+        resp = self.app.get(f"{BASE_URL}/{completed_order.id}")
+        data = resp.get_json()
+        logging.debug(completed_order)
+        self.assertEqual(data['status'], Status.Completed.name)
+
+
+        # test cancel returned order
+        returned_order = CustomerOrderFactory()
+        returned_order.status = Status.Returned  # change status to Returned
+        resp = self.app.post(
+            BASE_URL, json=returned_order.serialize(), content_type=CONTENT_TYPE_JSON
+        )
+        data = resp.get_json()
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(data["status"], Status.Returned.name)
+        logging.debug(returned_order)
+        # try cancelling a returned order
+        returned_order.id = data["id"]
+        resp = self.app.post(f"{BASE_URL}/{returned_order.id}/cancel")
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+        # try get the order back and check for status
+        resp = self.app.get(f"{BASE_URL}/{returned_order.id}")
+        data = resp.get_json()
+        logging.debug(returned_order)
+        self.assertEqual(data['status'], Status.Returned.name)
+
+    def test_cancel_order_already_cancelled(self):
+        """Cancelling order that is already cancelled"""
+        # test cancel returned order
+        cancelled_order = CustomerOrderFactory()
+        cancelled_order.status = Status.Cancelled  # change status to Cancelled
+        resp = self.app.post(
+            BASE_URL, json=cancelled_order.serialize(), content_type=CONTENT_TYPE_JSON
+        )
+        data = resp.get_json()
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(data["status"], Status.Cancelled.name)
+        logging.debug(cancelled_order)
+        # try cancelling a cancelled order
+        cancelled_order.id = data["id"]
+        resp = self.app.post(f"{BASE_URL}/{cancelled_order.id}/cancel")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        # try get the order back and check for status
+        resp = self.app.get(f"{BASE_URL}/{cancelled_order.id}")
+        data = resp.get_json()
+        logging.debug(cancelled_order)
+        self.assertEqual(data['status'], Status.Cancelled.name)
+
+    def test_cancel_order(self):
+        """Cancelling order"""
+        # test cancel received order
+        received_order = CustomerOrderFactory()
+        received_order.status = Status.Received  # change status to Received
+        resp = self.app.post(
+            BASE_URL, json=received_order.serialize(), content_type=CONTENT_TYPE_JSON
+        )
+        data = resp.get_json()
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(data["status"], Status.Received.name)
+        logging.debug(received_order)
+        # try cancelling a received order
+        received_order.id = data["id"]
+        resp = self.app.post(f"{BASE_URL}/{received_order.id}/cancel")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        # try get the order back and check for status
+        resp = self.app.get(f"{BASE_URL}/{received_order.id}")
+        data = resp.get_json()
+        logging.debug(received_order)
+        self.assertEqual(data['status'], Status.Cancelled.name)
 
     def test_method_not_allowed(self):
         """Testing unsupported request type"""
