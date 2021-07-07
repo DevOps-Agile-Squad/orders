@@ -34,7 +34,7 @@ from werkzeug.exceptions import NotFound
 # For this example we'll use SQLAlchemy, a popular ORM that supports a
 # variety of backends including SQLite, MySQL, and PostgreSQL
 from flask_sqlalchemy import SQLAlchemy
-from service.models import CustomerOrder, Item, DataValidationError
+from service.models import CustomerOrder, Item, DataValidationError, Status
 
 # Import Flask application
 from . import app
@@ -158,7 +158,7 @@ def update_orders(order_id):
 
 
 ######################################################################
-# DELETE A ORDER
+# DELETE AN ORDER
 ######################################################################
 @app.route("/orders/<int:order_id>", methods=["DELETE"])
 def delete_orders(order_id):
@@ -175,6 +175,10 @@ def delete_orders(order_id):
     app.logger.info("order with ID [%s] delete complete.", order_id)
     return make_response("", status.HTTP_204_NO_CONTENT)
 
+
+######################################################################
+# DELETE AN ITEM
+######################################################################
 @app.route("/orders/<int:order_id>/items/<int:item_id>", methods=["DELETE"])
 def delete_items(order_id, item_id):
     """
@@ -187,13 +191,43 @@ def delete_items(order_id, item_id):
     if order is None: 
         return make_response(f"Order with id {order_id} is not found", status.HTTP_404_NOT_FOUND)
     item = Item.find(item_id)
-    
+
     if item is not None:
         if item.order_id != order_id:
             return make_response(f"Item with id {item.order_id} is not in order with id {order_id}", status.HTTP_404_NOT_FOUND)
         item.delete()
     app.logger.info(f"item with id {item_id} delete complete")
     return make_response("", status.HTTP_204_NO_CONTENT)
+
+
+######################################################################
+# CANCELLING AN ORDER
+######################################################################
+@app.route("/orders/<int:order_id>/cancel", methods=["POST"])
+def cancel_orders(order_id):
+    """
+    Cancelling an order
+
+    This endpoint will cancel an order based on order_id and notify other services
+    """
+    app.logger.info(f"Request to cancel order with id {order_id}")
+    order = CustomerOrder.find(order_id)
+    if not order:
+        return make_response(f"Order with id {order_id} is not found", status.HTTP_404_NOT_FOUND)
+
+    if order.status == Status.Completed or order.status == Status.Returned:
+        return make_response(f"Order with id {order_id} is [{order.status.name}], request refused.", status.HTTP_400_BAD_REQUEST)
+
+    if order.status == Status.Cancelled:
+        return make_response(f"Order with id {order_id} is already cancelled.", status.HTTP_200_OK)
+
+    order.id = order_id
+    order.status = Status.Cancelled
+    order.save()
+    app.logger.info(f"Notify Shipping to cancel shipment...")
+    app.logger.info(f"Notify Billing to refund payment...")
+    app.logger.info(f"Order with id {order_id} cancelled successfully.")
+    return make_response(jsonify(order.serialize()), status.HTTP_200_OK)
 
 
 ######################################################################

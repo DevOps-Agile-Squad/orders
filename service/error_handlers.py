@@ -29,7 +29,7 @@ def request_validation_error(error):
 
 @app.errorhandler(status.HTTP_400_BAD_REQUEST)
 def bad_request(error):
-    """Handles bad reuests with 400_BAD_REQUEST"""
+    """Handles bad requests with 400_BAD_REQUEST"""
     message = str(error)
     app.logger.warning(message)
     return (
