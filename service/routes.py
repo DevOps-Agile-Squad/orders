@@ -45,18 +45,23 @@ from . import status  # HTTP Status Codes
 ######################################################################
 # GET INDEX
 ######################################################################
-# @app.route("/")
-# def index():
-#     """Root URL response"""
-#     app.logger.info("Request for Root URL")
-#     return (
-#         jsonify(
-#             name="Orders Demo REST API Service",
-#             version="1.0",
-#             paths=url_for("list_orders", _external=True),
-#         ),
-#         status.HTTP_200_OK,
-#     )
+@app.route("/")
+def index():
+    """Root URL response"""
+    app.logger.info("Request for Root URL")
+
+    routes = {}
+    for rule in app.url_map.iter_rules():
+        if rule.endpoint != 'static':
+            routes[rule.rule] = ','.join(rule.methods)
+    return (
+        jsonify(
+            name="Orders Demo REST API Service",
+            version="1.0",
+            paths=routes,
+        ),
+        status.HTTP_200_OK,
+    )
 
 
 ######################################################################
