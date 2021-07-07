@@ -36,6 +36,7 @@ The server should be visible on your local machine at `http://0.0.0.0:5000`
 - `POST /orders/<int:order_id>/items` - adds an item to the order with id of `order_id` and return the added item or `404` if the order doesn't exist
 - `DELETE /orders/<int:order_id>` - deletes the order with id of `order_id` if it exists and returns a `204` regardless of whether an actually deletion was performed
 - `DELETE /orders/<int:order_id>/items/<int:item_id>` - deletes the item with id of `item_id` in the order with id of `order_id`. It returns a `404` if either the order or the item doesn't exist.
+- `POST /orders/<int:order_id>/cancel` - cancels the order with id of `order_id`. Returns `200` for successful cancelling, returns `404` for orders not exist, returns `400` if the order in status `Completed/Returned`.
 
 
 ## Testing
