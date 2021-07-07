@@ -27,7 +27,7 @@ import os
 import logging
 import unittest
 from werkzeug.exceptions import NotFound
-from service.models import CustomerOrder, DataValidationError, db, Item
+from service.models import CustomerOrder, DataValidationError, db, Item, Status
 from service import app
 from .factories import CustomerOrderFactory
 
@@ -79,21 +79,25 @@ class TestCustomerOrderModel(unittest.TestCase):
 
     def test_create_a_customer_order(self):
         """Create an order and assert that it exists"""
-        order = CustomerOrder(customer_id=13, address=TEST_ADDRESS, items=[ MakeItem() ])
+        order = CustomerOrder(customer_id=13, address=TEST_ADDRESS, items=[ MakeItem() ], status=Status.Received)
         self.assertTrue(order != None)
         self.assertEqual(order.id, None)
         self.assertEqual(order.customer_id, 13)
         self.assertEqual(order.address, TEST_ADDRESS)
+        self.assertEqual(order.status, Status.Received)
+        order = CustomerOrder(customer_id=15, address=TEST_ADDRESS, items=[ MakeItem() ], status=Status.Completed)
+        self.assertEqual(order.customer_id, 15)
+        self.assertEqual(order.status, Status.Completed)
 
     def test_add_a_customer_order(self):
         """Create an order and add it to the database"""
         orderss = CustomerOrder.all()
         self.assertEqual(orderss, [])
-        order = CustomerOrder(customer_id=13, address=TEST_ADDRESS, items=[ MakeItem() ])
+        order = CustomerOrder(customer_id=13, address=TEST_ADDRESS, items=[ MakeItem() ], status=Status.Received)
         self.assertTrue(order != None)
         self.assertEqual(order.id, None)
         order.create()
-        # Asert that it was assigned an id and shows up in the database
+        # Assert that it was assigned an id and shows up in the database
         self.assertEqual(order.id, 1)
         orders = CustomerOrder.all()
         self.assertEqual(len(orders), 1)
@@ -108,15 +112,18 @@ class TestCustomerOrderModel(unittest.TestCase):
         # Change it an save it
         order.address = "new"
         original_id = order.id
+        order.status = Status.Processing
         order.update()
         self.assertEqual(order.id, original_id)
         self.assertEqual(order.address, "new")
+        self.assertEqual(order.status, Status.Processing)
         # Fetch it back and make sure the id hasn't changed
         # but the data did change
         orders = CustomerOrder.all()
         self.assertEqual(len(orders), 1)
         self.assertEqual(orders[0].id, 1)
         self.assertEqual(orders[0].address, "new")
+        self.assertEqual(orders[0].status, Status.Processing)
 
     def test_delete_a_customer_order(self):
         """Delete a customer order"""
@@ -151,6 +158,8 @@ class TestCustomerOrderModel(unittest.TestCase):
         self.assertEqual(data["customer_id"], order.customer_id)
         self.assertIn("address", data)
         self.assertEqual(data["address"], order.address)
+        self.assertIn("status", data)
+        self.assertEqual(data["status"], order.status.name)
 
     def test_deserialize_a_customer_order(self):
         """Test deserialization of a customer order"""
@@ -164,7 +173,8 @@ class TestCustomerOrderModel(unittest.TestCase):
                 "item_name": TEST_ITEM,
                 "quantity": 6,
                 "order_id": 10
-            }]
+            }],
+            "status": "Completed",
         }
         order = CustomerOrder()
         order.deserialize(data)
@@ -173,6 +183,7 @@ class TestCustomerOrderModel(unittest.TestCase):
         self.assertEqual(order.customer_id, 12)
         self.assertEqual(order.address, TEST_ADDRESS)
         self.assertListEqual(order.items, [MakeItem(id=None)])
+        self.assertEqual(order.status, Status.Completed)
 
     def test_deserialize_missing_data(self):
         """Test deserialization of a customer order with missing data"""
