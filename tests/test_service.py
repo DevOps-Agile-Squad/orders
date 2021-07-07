@@ -30,11 +30,11 @@ import unittest
 
 # from unittest.mock import MagicMock, patch
 from urllib.parse import quote_plus
+from werkzeug.exceptions import NotFound
 from service import status  # HTTP Status Codes
 from service.models import db, init_db, Item, CustomerOrder, Status
 from service.routes import app
 from .factories import CustomerOrderFactory
-from werkzeug.exceptions import NotFound
 
 # Disable all but ciritcal errors during normal test run
 # uncomment for debugging failing tests
@@ -51,7 +51,7 @@ CONTENT_TYPE_JSON = "application/json"
 ######################################################################
 #  T E S T   C A S E S
 ######################################################################
-class TestCustomerOrderServer(unittest.TestCase):
+class TestCustomerOrderServer(unittest.TestCase):  # pylint: disable=too-many-public-methods
     """Orders Server Tests"""
 
     @classmethod
@@ -139,7 +139,8 @@ class TestCustomerOrderServer(unittest.TestCase):
         self.assertIsNotNone(location)
         # Check the data is correct
         new_order = resp.get_json()
-        self.assertEqual(new_order["customer_id"], test_order.customer_id, "cus_id do not match")
+        self.assertEqual(new_order["customer_id"],
+                         test_order.customer_id, "cus_id do not match")
         self.assertEqual(
             new_order["address"], test_order.address, "address do not match"
         )
@@ -148,7 +149,8 @@ class TestCustomerOrderServer(unittest.TestCase):
         resp = self.app.get(location, content_type=CONTENT_TYPE_JSON)
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         new_order = resp.get_json()
-        self.assertEqual(new_order["customer_id"], test_order.customer_id, "cus_id do not match")
+        self.assertEqual(new_order["customer_id"],
+                         test_order.customer_id, "cus_id do not match")
         self.assertEqual(
             new_order["address"], test_order.address, "address do not match"
         )
@@ -176,7 +178,8 @@ class TestCustomerOrderServer(unittest.TestCase):
         resp = self.app.post(
             BASE_URL, data='Non JSON data type',
             content_type="application/x-www-form-urlencoded")
-        self.assertEqual(resp.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
+        self.assertEqual(resp.status_code,
+                         status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
 
     def test_create_order_no_data(self):
         """Create an order with missing data"""
@@ -186,7 +189,8 @@ class TestCustomerOrderServer(unittest.TestCase):
     def test_create_order_no_content_type(self):
         """Create an Order with no content type"""
         resp = self.app.post(BASE_URL)
-        self.assertEqual(resp.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
+        self.assertEqual(resp.status_code,
+                         status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
 
     def test_update_order(self):
         """Update an existing CustomerOrder"""
@@ -202,7 +206,7 @@ class TestCustomerOrderServer(unittest.TestCase):
         logging.debug(new_order)
         new_order["address"] = "new"
         resp = self.app.put(
-            "{0}/{1}".format(BASE_URL ,new_order["id"]),
+            "{0}/{1}".format(BASE_URL, new_order["id"]),
             json=new_order,
             content_type=CONTENT_TYPE_JSON,
         )
@@ -236,9 +240,13 @@ class TestCustomerOrderServer(unittest.TestCase):
         """Delete an item"""
         test_orders = self._create_orders(2)
         test_order = test_orders[0]
-        test_item = {"id": 2, "order_id": test_order.id, "quantity": 3, "price": 2.99, "item_name": "test item"}
+        test_item = {"id": 2,
+                     "order_id": test_order.id,
+                     "quantity": 3,
+                     "price": 2.99,
+                     "item_name": "test item"}
         resp = self.app.post(
-            f"{BASE_URL}/{test_order.id}/items", 
+            f"{BASE_URL}/{test_order.id}/items",
             json=test_item,
             content_type=CONTENT_TYPE_JSON
         )
@@ -247,22 +255,28 @@ class TestCustomerOrderServer(unittest.TestCase):
         returned_item.deserialize(resp.get_json())
         returned_item.id = resp.get_json()["item_id"]
 
-        self.assertEqual(len(CustomerOrder.find(returned_item.order_id).items), 1)
+        self.assertEqual(len(CustomerOrder.find(
+            returned_item.order_id).items), 1)
 
-        resp = self.app.delete(f"orders/{test_orders[1].id}/items/{returned_item.id}")
+        resp = self.app.delete(
+            f"orders/{test_orders[1].id}/items/{returned_item.id}")
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
-        resp = self.app.delete(f"{BASE_URL}/{returned_item.order_id}/items/{returned_item.id}", content_type=CONTENT_TYPE_JSON)
-        self.assertEqual(len(CustomerOrder.find(returned_item.order_id).items), 0)
+        resp = self.app.delete(f"{BASE_URL}/{returned_item.order_id}/items/{returned_item.id}",
+                               content_type=CONTENT_TYPE_JSON)
+        self.assertEqual(len(CustomerOrder.find(
+            returned_item.order_id).items), 0)
 
-        resp = self.app.delete(f"{BASE_URL}/0/items/13", content_type=CONTENT_TYPE_JSON)
+        resp = self.app.delete(
+            f"{BASE_URL}/0/items/13", content_type=CONTENT_TYPE_JSON)
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_query_orders_by_customer_id(self):
         """Query Orders by Customer Id"""
         orders = self._create_orders(10)
         test_customer_id = orders[0].customer_id
-        customer_id_orders = [order for order in orders if order.customer_id == test_customer_id]
+        customer_id_orders = [
+            order for order in orders if order.customer_id == test_customer_id]
         resp = self.app.get(
             BASE_URL, query_string="customer_id={}".format(test_customer_id)
         )
@@ -271,7 +285,7 @@ class TestCustomerOrderServer(unittest.TestCase):
         self.assertEqual(len(data), len(customer_id_orders))
         # check the data just to be sure
         for orders in data:
-           self.assertEqual(orders["customer_id"], test_customer_id)
+            self.assertEqual(orders["customer_id"], test_customer_id)
 
     def test_query_orders_by_item(self):
         """Query Orders by item name"""
@@ -326,7 +340,7 @@ class TestCustomerOrderServer(unittest.TestCase):
         )
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         data = resp.get_json()
-        self.assertEquals(len(data),2)
+        self.assertEqual(len(data), 2)
 
     def test_cancel_order_not_found(self):
         """Cancelling order not exists"""
@@ -338,7 +352,7 @@ class TestCustomerOrderServer(unittest.TestCase):
 
         # test cancel completed order
         completed_order = CustomerOrderFactory()
-        completed_order.status = Status.Completed # change status to Completed
+        completed_order.status = Status.Completed  # change status to Completed
         resp = self.app.post(
             BASE_URL, json=completed_order.serialize(), content_type=CONTENT_TYPE_JSON
         )
@@ -355,7 +369,6 @@ class TestCustomerOrderServer(unittest.TestCase):
         data = resp.get_json()
         logging.debug(completed_order)
         self.assertEqual(data['status'], Status.Completed.name)
-
 
         # test cancel returned order
         returned_order = CustomerOrderFactory()
