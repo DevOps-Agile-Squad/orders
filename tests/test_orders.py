@@ -38,10 +38,12 @@ DATABASE_URI = os.getenv(
 TEST_ADDRESS = "random address"
 TEST_ITEM = "Egg"
 
-def MakeItem(id=1, item_name=TEST_ITEM, quantity=6, price=1, order_id=10):
+
+def _make_item(item_id=1, item_name=TEST_ITEM, quantity=6, price=1, order_id=10):
     """Create and item for Order."""
-    return Item(id=id, item_name=item_name, quantity=quantity,
-        price=price, order_id=order_id)
+    return Item(id=item_id, item_name=item_name, quantity=quantity,
+                price=price, order_id=order_id)
+
 
 ######################################################################
 #  O R D E R   M O D E L   T E S T   C A S E S
@@ -79,13 +81,15 @@ class TestCustomerOrderModel(unittest.TestCase):
 
     def test_create_a_customer_order(self):
         """Create an order and assert that it exists"""
-        order = CustomerOrder(customer_id=13, address=TEST_ADDRESS, items=[ MakeItem() ], status=Status.Received)
+        order = CustomerOrder(customer_id=13, address=TEST_ADDRESS,
+                              items=[_make_item()], status=Status.Received)
         self.assertTrue(order != None)
         self.assertEqual(order.id, None)
         self.assertEqual(order.customer_id, 13)
         self.assertEqual(order.address, TEST_ADDRESS)
         self.assertEqual(order.status, Status.Received)
-        order = CustomerOrder(customer_id=15, address=TEST_ADDRESS, items=[ MakeItem() ], status=Status.Completed)
+        order = CustomerOrder(customer_id=15, address=TEST_ADDRESS,
+                              items=[_make_item()], status=Status.Completed)
         self.assertEqual(order.customer_id, 15)
         self.assertEqual(order.status, Status.Completed)
 
@@ -93,7 +97,8 @@ class TestCustomerOrderModel(unittest.TestCase):
         """Create an order and add it to the database"""
         orderss = CustomerOrder.all()
         self.assertEqual(orderss, [])
-        order = CustomerOrder(customer_id=13, address=TEST_ADDRESS, items=[ MakeItem() ], status=Status.Received)
+        order = CustomerOrder(customer_id=13, address=TEST_ADDRESS,
+                              items=[_make_item()], status=Status.Received)
         self.assertTrue(order != None)
         self.assertEqual(order.id, None)
         order.create()
@@ -137,15 +142,17 @@ class TestCustomerOrderModel(unittest.TestCase):
     def test_serialize_deserialize_item(self):
         """Test serialization of an item."""
         test_item = Item()
-        expected_item = MakeItem(id=1)
+        expected_item = _make_item(item_id=1)
         test_item.deserialize(expected_item.serialize())
         self.assertEqual(expected_item, test_item)
 
     def test_deserialize_item_error(self):
         """Test serialization of an item."""
         test_item = Item()
-        self.assertRaises(DataValidationError, test_item.deserialize, {"id": 1, "item_name": TEST_ITEM})
-        self.assertRaises(DataValidationError, test_item.deserialize, "Not a dictionary")
+        self.assertRaises(DataValidationError, test_item.deserialize,
+                          {"id": 1, "item_name": TEST_ITEM})
+        self.assertRaises(DataValidationError,
+                          test_item.deserialize, "Not a dictionary")
 
     def test_serialize_a_customer_order(self):
         """Test serialization of a customer order"""
@@ -182,7 +189,7 @@ class TestCustomerOrderModel(unittest.TestCase):
         self.assertEqual(order.id, None)
         self.assertEqual(order.customer_id, 12)
         self.assertEqual(order.address, TEST_ADDRESS)
-        self.assertListEqual(order.items, [MakeItem(id=None)])
+        self.assertListEqual(order.items, [_make_item(item_id=None)])
         self.assertEqual(order.status, Status.Completed)
 
     def test_deserialize_missing_data(self):
@@ -204,7 +211,7 @@ class TestCustomerOrderModel(unittest.TestCase):
             order.create()
         logging.debug(orders)
         # make sure they got saved
-        self.assertEqual(len(order.all()), 3)
+        self.assertEqual(len(CustomerOrder.all()), 3)
         # find the 2nd order in the list
         order = CustomerOrder.find(orders[1].id)
         self.assertIsNot(order, None)
@@ -214,9 +221,12 @@ class TestCustomerOrderModel(unittest.TestCase):
 
     def test_find_by_customer_id(self):
         """Find orders by Customer Id"""
-        CustomerOrder(customer_id=1, address=TEST_ADDRESS, items=[MakeItem(id=None)]).create()
-        CustomerOrder(customer_id=1, address=TEST_ADDRESS, items=[MakeItem(id=None)]).create()
-        CustomerOrder(customer_id=2, address=TEST_ADDRESS, items=[MakeItem(id=None)]).create()
+        CustomerOrder(customer_id=1, address=TEST_ADDRESS,
+                      items=[_make_item(item_id=None)]).create()
+        CustomerOrder(customer_id=1, address=TEST_ADDRESS,
+                      items=[_make_item(item_id=None)]).create()
+        CustomerOrder(customer_id=2, address=TEST_ADDRESS,
+                      items=[_make_item(item_id=None)]).create()
         orders = CustomerOrder.find_by_customer_id(1)
         order_list = [order for order in orders]
         self.assertEqual(len(order_list), 2)
@@ -225,7 +235,8 @@ class TestCustomerOrderModel(unittest.TestCase):
 
     def test_find_by_including_item(self):
         """Find orders by Including Item"""
-        CustomerOrder(customer_id=1, address=TEST_ADDRESS, items=[MakeItem()]).create()
+        CustomerOrder(customer_id=1, address=TEST_ADDRESS,
+                      items=[_make_item()]).create()
         orders = CustomerOrder.find_by_including_item(TEST_ITEM)
         order_list = [order for order in orders]
         self.assertEqual(len(order_list), 1)

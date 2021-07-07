@@ -24,15 +24,21 @@ class CustomerOrderFactory(factory.Factory):
     """Generate fake CustomerOrder objects"""
 
     class Meta:
+        """Class Meta object CustomerOrder"""
         model = CustomerOrder
 
     id = factory.Sequence(lambda n: n)
     customer_id = factory.Sequence(lambda n: n)
     address = factory.Faker("address")
-    status = FuzzyChoice(choices=[Status.Received, Status.Processing,
-                         Status.Completed, Status.Cancelled, Status.Returned])
+    status = FuzzyChoice(choices=[Status.Received,
+                                  Status.Processing,
+                                  Status.Completed,
+                                  Status.Cancelled,
+                                  Status.Returned])
 
 
 class ItemFactory(factory.Factory):
     """Generate fake items"""
-    pass
+    class Meta:
+        """Class Meta object Item"""
+        model = Item

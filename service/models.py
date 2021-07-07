@@ -41,10 +41,10 @@ import logging
 from enum import Enum
 from flask_sqlalchemy import SQLAlchemy
 
-logger = logging.getLogger("flask.app")
+logger = logging.getLogger("flask.app") # pylint: disable=invalid-name
 
 # Create the SQLAlchemy object to be initialized later in init_db()
-db = SQLAlchemy()
+db = SQLAlchemy() # pylint: disable=invalid-name
 
 
 def init_db(app):
@@ -55,7 +55,6 @@ def init_db(app):
 class DataValidationError(Exception):
     """Used for an data validation errors when deserializing"""
 
-    pass
 
 class Status(Enum):
     """Enumeration of valid Order Status"""
@@ -77,17 +76,20 @@ class Item(db.Model):
 
     # Table Schema
     id = db.Column(db.Integer, primary_key=True)
-    order_id = db.Column(db.Integer, db.ForeignKey('customer_order.id'), nullable=False)
-    quantity = db.Column(db.Integer, nullable=True)  # If null quantity will be treated as 1.
+    order_id = db.Column(db.Integer, db.ForeignKey(
+        'customer_order.id'), nullable=False)
+    # If null quantity will be treated as 1.
+    quantity = db.Column(db.Integer, nullable=True)
     price = db.Column(db.Integer, nullable=False)
-    item_name = db.Column(db.String(120), nullable=False) # e.g., ball, balloon, etc.
+    # e.g., ball, balloon, etc.
+    item_name = db.Column(db.String(120), nullable=False)
 
     def __eq__(self, other):
         return (self.id == other.id) or ((self.id is None or other.id is None) and
-            (self.item_name == other.item_name) and
-            (self.order_id == other.order_id) and
-            (self.quantity == other.quantity) and
-            (self.price == other.price))
+                                         (self.item_name == other.item_name) and
+                                         (self.order_id == other.order_id) and
+                                         (self.quantity == other.quantity) and
+                                         (self.price == other.price))
 
     @classmethod
     def find(cls, item_id):
@@ -105,7 +107,7 @@ class Item(db.Model):
 
     def delete(self):
         """Removes an item from the data store"""
-        logger.info(f"Deleting order {self.id}")
+        logger.info("Deleting order %s", self.id)
         db.session.delete(self)
         db.session.commit()
 
@@ -139,7 +141,6 @@ class Item(db.Model):
         return self
 
 
-
 class CustomerOrder(db.Model):
     """
     Class that represents a CustomerOrder
@@ -156,7 +157,8 @@ class CustomerOrder(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     customer_id = db.Column(db.Integer, nullable=False)
     address = db.Column(db.String(256), nullable=False)
-    items = db.relationship('Item', backref='order', lazy=True, cascade="all, delete")
+    items = db.relationship('Item', backref='order',
+                            lazy=True, cascade="all, delete")
     status = db.Column(
         db.Enum(Status), nullable=False, server_default=(Status.Received.name)
     )
@@ -166,14 +168,16 @@ class CustomerOrder(db.Model):
     ##################################################
 
     def __repr__(self):
-        return f"Order {self.id} by Customer {self.customer_id} with address: {self.address}. Status: [{self.status.name}]"
+        return f"Order [{self.id}] by Customer [{self.customer_id}] with address: {self.address}. \
+                Status: [{self.status.name}]"
 
     def create(self):
         """
         Creates a CustomerOrder to the database
         """
-        logger.info(f"Creating order {self.id}")
-        self.id = None  # id must be none to generate next primary key
+        logger.info("Creating order %s", self.id)
+        # id must be none to generate next primary key
+        self.id = None  # pylint: disable=invalid-name
         db.session.add(self)
         db.session.commit()
 
@@ -181,14 +185,14 @@ class CustomerOrder(db.Model):
         """
         Updates a CustomerOrder to the database
         """
-        logger.info(f"Updating order {self.id}")
+        logger.info("Updating order %s", self.id)
         if not self.id:
             raise DataValidationError("Update called with empty ID field")
         db.session.commit()
 
     def delete(self):
         """Removes a order from the data store"""
-        logger.info(f"Deleting order {self.id}")
+        logger.info("Deleting order %s", self.id)
         db.session.delete(self)
         db.session.commit()
 
@@ -199,7 +203,7 @@ class CustomerOrder(db.Model):
             "customer_id": self.customer_id,
             "address": self.address,
             "items": [],
-            "status": self.status.name, # convert enum to string
+            "status": self.status.name,  # convert enum to string
         }
         for item in self.items:
             order["items"].append(item.serialize())
@@ -225,9 +229,11 @@ class CustomerOrder(db.Model):
                     item = Item()
                     item.deserialize(item_str)
                     self.items.append(item)
-            self.status = getattr(Status, data["status"])   # create enum from string
+            # create enum from string
+            self.status = getattr(Status, data["status"])
         except KeyError as error:
-            raise DataValidationError("Invalid order: missing " + error.args[0])
+            raise DataValidationError(
+                "Invalid order: missing " + error.args[0])
         except TypeError as error:
             raise DataValidationError(
                 "Invalid order: body of request contained bad or no data"
@@ -284,7 +290,8 @@ class CustomerOrder(db.Model):
         :rtype: order
 
         """
-        logger.info("Processing lookup or 404 for id %s ...", customer_order_id)
+        logger.info("Processing lookup or 404 for id %s ...",
+                    customer_order_id)
         return cls.query.get_or_404(customer_order_id)
 
     def save(self):
