@@ -120,6 +120,44 @@ class TestCustomerOrderServer(unittest.TestCase):  # pylint: disable=too-many-pu
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         data = resp.get_json()
         self.assertEqual(data["customer_id"], test_order.customer_id)
+    
+    def test_get_item(self):
+        """Get a single item"""
+        test_order = self._create_orders(1)[0]
+        resp = self.app.get(
+            "{0}/{1}".format(BASE_URL, test_order.id), content_type=CONTENT_TYPE_JSON
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(data["customer_id"], test_order.customer_id)
+
+        resp = self.app.post(
+            "{0}/{1}/items".format(BASE_URL, data["id"]),
+            json=Item(id=None, item_name='Egg', quantity=6,
+                      price=1, order_id=data["id"]).serialize(),
+            content_type=CONTENT_TYPE_JSON
+        )
+        item_data = resp.get_json()
+        logging.debug(f"item data is {item_data}")
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+
+        resp = self.app.get(
+            f"{BASE_URL}/{data['id']}/items/{item_data['item_id']}", content_type=CONTENT_TYPE_JSON
+        )
+        item_get_response = resp.get_json()
+        self.assertEqual(resp.status_code, status.HTTP_200_OK) 
+
+        resp = self.app.get(
+            f"{BASE_URL}/0/items/{item_data['item_id']}", content_type=CONTENT_TYPE_JSON
+        )
+        self.assertRaises(NotFound)
+
+        resp = self.app.get(
+            f"{BASE_URL}/{data['id']}/items/0", content_type=CONTENT_TYPE_JSON
+        )
+        self.assertRaises(NotFound)
+        
+
 
     def test_get_order_not_found(self):
         """Get a order thats not found"""

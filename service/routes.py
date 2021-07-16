@@ -103,6 +103,27 @@ def get_order(order_id):
     app.logger.info("Returning order: %s", order_id)
     return make_response(jsonify(order.serialize()), status.HTTP_200_OK)
 
+######################################################################
+# GET AN ITEM BY ORDER ID AND ITEM ID
+######################################################################
+@app.route("/orders/<int:order_id>/items/<int:item_id>", methods=["GET"])
+def get_item(order_id, item_id):
+    """
+    Retrieve a single item in an order
+    This endpoint will return an item based on its id and its order's id
+    """
+    app.logger.info(f"Request for item with id {item_id} in order {order_id}")
+    order = CustomerOrder.find(order_id)
+    if not order: 
+        raise NotFound(f"Order with id {order_id} was not found")
+    
+    item = Item.find(item_id)
+    if not item: 
+        raise NotFound(f"Item with id {item_id} was not found in order {order_id}")
+    
+    app.logger.info(f"Returning item: {item_id}")
+    return make_response(jsonify(item.serialize()), status.HTTP_200_OK)
+
 
 ######################################################################
 # ADD ITEM TO A CUSTOMER ORDER
@@ -118,7 +139,8 @@ def add_item(order_id):
     customer_order.items.append(item)
     customer_order.save()
     message = item.serialize()
-    return make_response(jsonify(message), status.HTTP_201_CREATED)
+    location_url = url_for("get_item", order_id=order_id, item_id=message['item_id'], _external=True)
+    return make_response(jsonify(message), status.HTTP_201_CREATED, {"Location": location_url})
 
 
 ######################################################################
