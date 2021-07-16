@@ -1,5 +1,7 @@
 # Orders
 
+[![Build Status](https://travis-ci.com/DevOps-Agile-Squad/orders.svg?branch=main)](https://travis-ci.com/DevOps-Agile-Squad/orders)
+
 The orders resource is a collection of order items where each item represents a product, its quantity, and its price. Since this is really a collection of order items, we will implement a subordinate REST API to place order items into the order collection (e.g., /orders/{id}/ items). We will also associate the order with a customer through its customer id.
 
 Order API
