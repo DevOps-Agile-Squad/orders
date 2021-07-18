@@ -40,10 +40,9 @@ from .factories import CustomerOrderFactory
 # uncomment for debugging failing tests
 # logging.disable(logging.CRITICAL)
 
-# DATABASE_URI = os.getenv('DATABASE_URI', 'sqlite:///../db/test.db')
-DATABASE_URI = os.getenv(
-    "DATABASE_URI", "postgres://postgres:postgres@localhost:5432/testdb"
-)
+import config
+
+DATABASE_URI = config.DATABASE_URI
 BASE_URL = "/orders"
 CONTENT_TYPE_JSON = "application/json"
 

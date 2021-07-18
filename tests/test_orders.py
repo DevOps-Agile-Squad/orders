@@ -31,10 +31,9 @@ from service.models import CustomerOrder, DataValidationError, db, Item, Status
 from service import app
 from .factories import CustomerOrderFactory
 
-DATABASE_URI = os.getenv(
-    "DATABASE_URI", "postgres://postgres:postgres@localhost:5432/testdb"
-)
+import config
 
+DATABASE_URI = config.DATABASE_URI
 TEST_ADDRESS = "random address"
 TEST_ITEM = "Egg"
 
