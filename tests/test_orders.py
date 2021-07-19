@@ -26,15 +26,14 @@ While debugging just these tests it's convinient to use this:
 import os
 import logging
 import unittest
+import config
 from werkzeug.exceptions import NotFound
 from service.models import CustomerOrder, DataValidationError, db, Item, Status
 from service import app
 from .factories import CustomerOrderFactory
 
-DATABASE_URI = os.getenv(
-    "DATABASE_URI", "postgres://postgres:postgres@localhost:5432/testdb"
-)
 
+DATABASE_URI = config.DATABASE_URI
 TEST_ADDRESS = "random address"
 TEST_ITEM = "Egg"
 

@@ -27,6 +27,7 @@ Test cases can be run with the following:
 import os
 import logging
 import unittest
+import config
 
 # from unittest.mock import MagicMock, patch
 from urllib.parse import quote_plus
@@ -40,10 +41,7 @@ from .factories import CustomerOrderFactory
 # uncomment for debugging failing tests
 # logging.disable(logging.CRITICAL)
 
-# DATABASE_URI = os.getenv('DATABASE_URI', 'sqlite:///../db/test.db')
-DATABASE_URI = os.getenv(
-    "DATABASE_URI", "postgres://postgres:postgres@localhost:5432/testdb"
-)
+DATABASE_URI = config.DATABASE_URI
 BASE_URL = "/orders"
 CONTENT_TYPE_JSON = "application/json"
 
