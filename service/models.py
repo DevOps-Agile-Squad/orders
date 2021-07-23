@@ -188,6 +188,7 @@ class CustomerOrder(db.Model):
         logger.info("Updating order %s", self.id)
         if not self.id:
             raise DataValidationError("Update called with empty ID field")
+        
         db.session.commit()
 
     def delete(self):
