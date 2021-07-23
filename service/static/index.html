@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Orders RESTful Service</title>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="static/css/blue_bootstrap.min.css">
+        <script type="text/javascript" src = "static/js/jquery-3.1.1.min.js"></script>
+        <script type="text/javascript" src="static/js/rest_api.js"></script>
+      </head>
+      <body>
+        <div class="container">
+            <div class="page-header">
+                <h1>Order Demo REST API Service</h1>
+            </div>
+    
+            <!-- Flash Message -->
+            <div class="table-responsive">
+              <table class="table">
+                <tr><td>Status:</td><td><span id="flash_message"></span></td></tr>
+              </table>
+            </div>
+    
+            <div class="col-md-12" id="form_data">
+              Create, Retrieve, Update, and Delete an Order:
+              <div class="well" style="margin-top: 1%;">
+                <div class="form-horizontal">
+                  <div class="form-group">
+                    <label class="control-label col-sm-2" for="order_id">Order ID:</label>
+                    <div class="col-sm-6">
+                      <input type="text" class="form-control" id="order_id" placeholder="Enter ID of Order">
+                    </div>
+                    <div class="col-sm-4">
+                      <button type="submit" class="btn btn-primary" id="retrieve-btn">Retrieve</button>
+                      <button type="submit" class="btn btn-danger" id="delete-btn">Delete</button>
+                      <button type="submit" class="btn btn-danger" id="cancel-btn">Cancel</button>
+                    </div>
+                  </div>
+                </div> <!-- form div -->
+    
+                <div class="form-horizontal">
+                  <div class="form-group">
+                    <label class="control-label col-sm-2" for="customer_id">Customer ID: </label>
+                    <div class="col-sm-10">
+                      <input type="text" class="form-control" id="customer_id" placeholder="Enter Customer ID for the Order">
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="control-label col-sm-2" for="address">Address: </label>
+                    <div class="col-sm-10">
+                      <input type="text" class="form-control" id="address" placeholder="Enter Address for the Order">
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="control-label col-sm-2" for="status">Status: </label>
+                    <div class="col-sm-10">
+                      <select class="form-control" id="status">
+                          <option value="Received" selected>Received</option>
+                          <option value="Processing">Processing</option>
+                          <option value="Completed">Completed</option>
+                          <option value="Cancelled">Cancelled</option>
+                          <option value="Returned">Returned</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <div class="col-sm-offset-2 col-sm-10">
+                      <button type="submit" class="btn btn-primary" id="list-btn">List All</button>
+                      <button type="submit" class="btn btn-primary" id="clear-btn">Clear</button>
+                      <button type="submit" class="btn btn-success" id="create-btn">Create</button>
+                      <button type="submit" class="btn btn-warning" id="update-btn">Update</button>
+                    </div>
+                  </div>
+                  
+              </div> <!-- form div -->
+            </div>
+    
+            <!-- Search Results -->
+            <div class="table-responsive col-md-12" id="search_results" style="margin-bottom: 5%;">
+              <table class="table-striped">
+                <thead>
+                <tr>
+                    <th class="col-md-1">Order ID</th>
+                    <th class="col-md-4">Customer ID</th>
+                    <th class="col-md-4">Address</th>
+                    <th class="col-md-3">Status</th>
+                    <th class="col-md-3">Items</th>
+                </tr>
+                </thead>
+              </table>
+            </div>
+
+            <div class="col-md-12" id="item_form_data">
+                Create, Retrieve, Update, and Delete an Item:<br/>(You'll need both the Item ID and the Order ID to retrieve or delete an item)
+                <div class="well" style="margin-top: 1%;">
+                  <div class="form-horizontal">
+                    <div class="form-group">
+                      <label class="control-label col-sm-2" for="item_id">Item ID: </label>
+                      <div class="col-sm-10">
+                        <input type="text" class="form-control" id="item_id" placeholder="Enter ID for the Item (No need to specify for Item Creation)">
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="control-label col-sm-2" for="item_order_id">Order ID: </label>
+                      <div class="col-sm-10">
+                        <input type="text" class="form-control" id="item_order_id" placeholder="Enter Order ID for the Item">
+                      </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-sm-2" for="name">Name: </label>
+                        <div class="col-sm-10">
+                          <input type="text" class="form-control" id="name" placeholder="Enter name of the Item">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-sm-2" for="quantity">Quantity: </label>
+                        <div class="col-sm-10">
+                          <input type="text" class="form-control" id="quantity" placeholder="Enter quantity of the Item">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-sm-2" for="price">Price: </label>
+                        <div class="col-sm-10">
+                          <input type="text" class="form-control" id="price" placeholder="Enter price of the Item">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                      <div class="col-sm-offset-2 col-sm-10">
+                        <button type="submit" class="btn btn-primary" id="item-clear-btn">Clear</button>
+                        <button type="submit" class="btn btn-primary" id="item-retrieve-btn">Retrieve</button>
+                        <button type="submit" class="btn btn-success" id="item-create-btn">Create</button>
+                        <button type="submit" class="btn btn-danger" id="item-delete-btn">Delete</button>
+                      </div>
+                    </div>
+                    
+                </div> <!-- form div -->
+              </div>
+
+              <!-- Item Search Results -->
+                <div class="table-responsive col-md-12" id="item_search_results" style="margin-bottom: 5%;">
+                    <table class="table-striped">
+                    <thead>
+                    <tr>
+                        <th class="col-md-2">Item ID</th>
+                        <th class="col-md-2">Order ID</th>
+                        <th class="col-md-4">Name</th>
+                        <th class="col-md-2">Quantity</th>
+                        <th class="col-md-2">Price</th>
+                    </tr>
+                    </thead>
+                    </table>
+                </div>
+    
+            <footer>
+              <br><br>
+              <p>&copy; NYU DevOps 2021</p>
+            </footer>
+            </div><!--/span-->
+         </div><!--/row-->
+    
+      </div><!-- container -->
+      </body>
+</html>
