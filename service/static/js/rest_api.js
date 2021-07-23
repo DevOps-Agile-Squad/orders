@@ -145,7 +145,7 @@ $(() => {
         let customerId = $("#customer_id").val();
         let address = $("#address").val();
         const status = $("#status").val();
-        let items = []; 
+        // let items = []; 
 
         const ajax = $.ajax({
             type: "GET",
