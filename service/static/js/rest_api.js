@@ -96,10 +96,6 @@ $(() => {
         $("#item_search_results").append(row); 
     }
 
-
-
-    
-
     // ****************************************      
     // Create an Order
     // ****************************************
@@ -145,7 +141,6 @@ $(() => {
         let customerId = $("#customer_id").val();
         let address = $("#address").val();
         const status = $("#status").val();
-        // let items = []; 
 
         const ajax = $.ajax({
             type: "GET",
@@ -153,8 +148,6 @@ $(() => {
             contentType: "application/json",
             data: ''
         })
-
-        
 
         ajax.done((res) => {
             customerId = customerId === "" ? res.customer_id : customerId; 
@@ -191,11 +184,6 @@ $(() => {
         ajax.fail((res) => {
             flashMessage(res.responseJSON.message)
         });
-
-        
-
-        
-
     });
 
     // ****************************************
@@ -304,8 +292,6 @@ $(() => {
             flashMessage("Success")
         }); 
     })
-
-    
 
     // ****************************************
     // Search for an Order
@@ -489,7 +475,4 @@ $(() => {
             flashMessage("Server error!")
         });
     });
-
-
-
 })
