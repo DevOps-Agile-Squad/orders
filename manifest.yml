@@ -5,7 +5,7 @@ applications:
 - name: nyu-order-service-sum21
   path: .
   instances: 2
-  memory: 64M
+  memory: 256M
   routes:
   - route: nyu-order-service-sum21.us-south.cf.appdomain.cloud
   disk_quota: 1024M
