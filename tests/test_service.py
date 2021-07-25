@@ -97,8 +97,6 @@ class TestCustomerOrderServer(unittest.TestCase):  # pylint: disable=too-many-pu
         """Test the Home Page"""
         resp = self.app.get("/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        data = resp.get_json()
-        self.assertEqual(data["name"], "Orders Demo REST API Service")
 
     def test_get_orders_list(self):
         """Get a list of orders"""

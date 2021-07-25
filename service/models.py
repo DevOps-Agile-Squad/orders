@@ -188,6 +188,7 @@ class CustomerOrder(db.Model):
         logger.info("Updating order %s", self.id)
         if not self.id:
             raise DataValidationError("Update called with empty ID field")
+        
         db.session.commit()
 
     def delete(self):
@@ -223,13 +224,6 @@ class CustomerOrder(db.Model):
         try:
             self.customer_id = data["customer_id"]
             self.address = data["address"]
-            self.items = []
-            if 'items' in data and data['items']:
-                for item_str in data.get('items'):
-                    item = Item()
-                    item.deserialize(item_str)
-                    self.items.append(item)
-            # create enum from string
             self.status = getattr(Status, data["status"])
         except KeyError as error:
             raise DataValidationError(
