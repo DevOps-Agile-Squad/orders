@@ -48,20 +48,7 @@ from . import status  # HTTP Status Codes
 @app.route("/")
 def index():
     """Root URL response"""
-    app.logger.info("Request for Root URL")
-
-    routes = {}
-    for rule in app.url_map.iter_rules():
-        if rule.endpoint != 'static':
-            routes[rule.rule] = ','.join(rule.methods)
-    return (
-        jsonify(
-            name="Orders Demo REST API Service",
-            version="1.0",
-            paths=routes,
-        ),
-        status.HTTP_200_OK,
-    )
+    return app.send_static_file("index.html")
 
 
 ######################################################################
@@ -183,6 +170,7 @@ def update_orders(order_id):
         raise NotFound("Order with id '{}' was not found.".format(order_id))
     order.deserialize(request.get_json())
     order.id = order_id
+    app.logger.info(f"Order id is {order.id}")
     order.update()
 
     app.logger.info("Order with ID [%s] updated.", order.id)

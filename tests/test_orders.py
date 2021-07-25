@@ -173,13 +173,6 @@ class TestCustomerOrderModel(unittest.TestCase):
             "id": 1,
             "customer_id": 12,
             "address": TEST_ADDRESS,
-            "items": [{
-                "id": 1,
-                "price": 1,
-                "item_name": TEST_ITEM,
-                "quantity": 6,
-                "order_id": 10
-            }],
             "status": "Completed",
         }
         order = CustomerOrder()
@@ -188,7 +181,6 @@ class TestCustomerOrderModel(unittest.TestCase):
         self.assertEqual(order.id, None)
         self.assertEqual(order.customer_id, 12)
         self.assertEqual(order.address, TEST_ADDRESS)
-        self.assertListEqual(order.items, [_make_item(item_id=None)])
         self.assertEqual(order.status, Status.Completed)
 
     def test_deserialize_missing_data(self):
