@@ -21,7 +21,7 @@ def step_impl(context):
         context.resp = requests.delete(context.base_url + '/orders/' + str(order["id"]), headers=headers)
         expect(context.resp.status_code).to_equal(204)
     
-    # load the database with new pets
+    # load the database with new orders
     create_url = context.base_url + '/orders'
     for row in context.table:
         data = {
