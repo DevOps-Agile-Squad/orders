@@ -25,7 +25,20 @@ Scenario: Delete an Order
     When I visit the "Home Page"
     And I press the "List" button
     Then I should see the message "Success"
-    And I should see "2002" in the results
+    And I should not see "2003" in the results
+    When I set the "Customer_ID" to "2003"
+    When I set the "Address" to "104"
+    And I press the "Create" button
+    Then I should see the message "Success"
+    When I press the "List" button
+    Then I should see the message "Success"
+    And I should see "2003" in the results
+    When I press the "Delete" button
+    Then I should see the message "Order has been Deleted!"
+    When I press the "List" button
+    Then I should see the message "Success"
+    And I should not see "2003" in the results
+
     
 
 

@@ -28,8 +28,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support import expected_conditions
 
-ID_PREFIX = 'order_'
-
 @given(u'The server is running')
 def step_impl(context):
     context.base_url = os.getenv(
@@ -56,7 +54,7 @@ def step_impl(context, message):
 
 @when('I set the "{element_name}" to "{text_string}"')
 def step_impl(context, element_name, text_string):
-    element_id = ID_PREFIX + element_name.lower()
+    element_id = element_name.lower()
     element = context.driver.find_element_by_id(element_id)
     element.clear()
     element.send_keys(text_string)
