@@ -3,8 +3,6 @@ Environment for Behave Testing
 """
 from os import getenv
 from selenium import webdriver
-from service.models import db
-from service.routes import app
 
 WAIT_SECONDS = int(getenv('WAIT_SECONDS', '60'))
 BASE_URL = getenv('BASE_URL', 'http://localhost:5000')
