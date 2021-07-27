@@ -5,11 +5,19 @@ $(() => {
     // ****************************************
 
     // Updates the form with data from the response
-    const updateOrderFormData = (res) => {
-        $("#order_id").val(res.id);
-        $("#customer_id").val(res.customer_id);
-        $("#address").val(res.address);
-        $("#status").val(res.status); 
+    const updateOrderFormData = (res, method) => {
+        if (method === "retrieve") {
+            $("#order_id").val(res.id);
+            $("#customer_id").val(res.customer_id);
+            $("#address").val(res.address);
+            $("#status").val(res.status); 
+        } else {
+            $("#order_id").val(res[0].id);
+            $("#customer_id").val(res[0].customer_id);
+            $("#address").val(res[0].address);
+            $("#status").val(res[0].status);
+        }
+        
     }
 
     // Clears all form fields in Order form
@@ -42,7 +50,7 @@ $(() => {
     // List the orders received from a request
     const listOrders = (res, method) => {
         clearOrderResults(); 
-        if (method === "list") {
+        if (method === "list" || method === "search") {
             for (let i = 0; i < res.length; i++) {
                 const order = res[i]; 
                 let itemsString = ""; 
@@ -202,15 +210,44 @@ $(() => {
         })
         
 
-        ajax.done(function(res){
+        ajax.done((res) => {
             console.log(res)
             //alert(res.toSource())
             listOrders(res, "retrieve")
+            updateOrderFormData(res, "retrieve")
+            flashMessage("Success")
+        });
+
+        ajax.fail((res) => {
+            clearOrderFormData()
+            flashMessage(res.responseJSON.message)
+        });
+
+    });
+
+    // ****************************************
+    // Search an Order by Customer ID
+    // ****************************************
+
+    $("#search-btn").click(() => {
+
+        const customerId = $("#customer_id").val();
+
+        const ajax = $.ajax({
+            type: "GET",
+            url: `/orders?customer_id=${customerId}`,
+            contentType: "application/json",
+            data: ''
+        })
+        
+
+        ajax.done((res) => {
+            listOrders(res, "search")
             updateOrderFormData(res)
             flashMessage("Success")
         });
 
-        ajax.fail(function(res){
+        ajax.fail((res) => {
             clearOrderFormData()
             flashMessage(res.responseJSON.message)
         });
@@ -297,74 +334,74 @@ $(() => {
     // Search for an Order
     // ****************************************
 
-    $("#search-btn").click(() => {
+    // $("#search-btn").click(() => {
 
-        const customerId = $("#customer_id").val();
-        const address = $("#address").val();
-        const status = $("#status").val();
+    //     const customerId = $("#customer_id").val();
+    //     const address = $("#address").val();
+    //     const status = $("#status").val();
 
-        let queryString = ""
+    //     let queryString = ""
 
-        if (customerId) {
-            queryString += 'name=' + name
-        }
-        if (category) {
-            if (queryString.length > 0) {
-                queryString += '&category=' + category
-            } else {
-                queryString += 'category=' + category
-            }
-        }
-        if (available) {
-            if (queryString.length > 0) {
-                queryString += '&available=' + available
-            } else {
-                queryString += 'available=' + available
-            }
-        }
+    //     if (customerId) {
+    //         queryString += 'name=' + name
+    //     }
+    //     if (category) {
+    //         if (queryString.length > 0) {
+    //             queryString += '&category=' + category
+    //         } else {
+    //             queryString += 'category=' + category
+    //         }
+    //     }
+    //     if (available) {
+    //         if (queryString.length > 0) {
+    //             queryString += '&available=' + available
+    //         } else {
+    //             queryString += 'available=' + available
+    //         }
+    //     }
 
-        var ajax = $.ajax({
-            type: "GET",
-            url: "/pets?" + queryString,
-            contentType: "application/json",
-            data: ''
-        })
+    //     var ajax = $.ajax({
+    //         type: "GET",
+    //         url: "/pets?" + queryString,
+    //         contentType: "application/json",
+    //         data: ''
+    //     })
 
-        ajax.done(function(res){
-            //alert(res.toSource())
-            $("#search_results").empty();
-            $("#search_results").append('<table class="table-striped" cellpadding="10">');
-            var header = '<tr>'
-            header += '<th style="width:10%">ID</th>'
-            header += '<th style="width:40%">Name</th>'
-            header += '<th style="width:40%">Category</th>'
-            header += '<th style="width:10%">Available</th></tr>'
-            $("#search_results").append(header);
-            var firstPet = "";
-            for(var i = 0; i < res.length; i++) {
-                var pet = res[i];
-                var row = "<tr><td>"+pet._id+"</td><td>"+pet.name+"</td><td>"+pet.category+"</td><td>"+pet.available+"</td></tr>";
-                $("#search_results").append(row);
-                if (i == 0) {
-                    firstPet = pet;
-                }
-            }
+    //     ajax.done(function(res){
+    //         //alert(res.toSource())
+    //         $("#search_results").empty();
+    //         $("#search_results").append('<table class="table-striped" cellpadding="10">');
+    //         var header = '<tr>'
+    //         header += '<th style="width:10%">ID</th>'
+    //         header += '<th style="width:40%">Name</th>'
+    //         header += '<th style="width:40%">Category</th>'
+    //         header += '<th style="width:10%">Available</th></tr>'
+    //         $("#search_results").append(header);
+    //         var firstPet = "";
+    //         for(var i = 0; i < res.length; i++) {
+    //             var pet = res[i];
+    //             var row = "<tr><td>"+pet._id+"</td><td>"+pet.name+"</td><td>"+pet.category+"</td><td>"+pet.available+"</td></tr>";
+    //             $("#search_results").append(row);
+    //             if (i == 0) {
+    //                 firstPet = pet;
+    //             }
+    //         }
 
-            $("#search_results").append('</table>');
+    //         $("#search_results").append('</table>');
 
-            // copy the first result to the form
-            if (firstPet != "") {
-                updateOrderFormData(firstPet)
-            }
+    //         // copy the first result to the form
+    //         if (firstPet != "") {
+    //             updateOrderFormData(firstPet)
+    //         }
 
-            flashMessage("Success")
-        });
+    //         flashMessage("Success")
+    //     });
 
-        ajax.fail(function(res){
-            flashMessage(res.responseJSON.message)
-        });
+    //     ajax.fail(function(res){
+    //         flashMessage(res.responseJSON.message)
+    //     });
 
-    });
+    // });
 
     // ****************************************
     // Clear the Item form
