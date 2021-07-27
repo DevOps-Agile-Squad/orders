@@ -5,10 +5,10 @@ Feature: The orders service back-end
 
 Background: 
     Given the following orders
-        | id         | customer_id | address         | status           | 
-        | 1          | 1           | 101 king st     | Completed        |         
-        | 2          | 2           | 102 king st     | Processing       |       
-        | 3          | 3           | 103 king st     | Processing       |   
+        | customer_id | address         | status           | 
+        | 1           | 101 king st     | Completed        |         
+        | 2           | 102 king st     | Processing       |       
+        | 3           | 103 king st     | Processing       |   
 
     Given the following items
         | order_id_index    | item_name       | quantity       | price       | 
@@ -20,11 +20,3 @@ Scenario: The server is running
     When I visit the "Home Page"
     Then I should see "Orders RESTful Service" in the title
     And I should not see "404 Not Found"
-
-
-
-
-
-
-
-
