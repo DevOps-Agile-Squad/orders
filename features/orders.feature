@@ -8,7 +8,13 @@ Background:
         | id         | customer_id | address         | status           | 
         | 1          | 1           | 101 king st     | Completed        |         
         | 2          | 2           | 102 king st     | Processing       |       
-        | 3          | 3           | 103 king st     | Processing       |       
+        | 3          | 3           | 103 king st     | Processing       |   
+
+    Given the following items
+        | order_id_index    | item_name       | quantity       | price       | 
+        | 0                 | keyboard        | 1              | 35          |
+        | 0                 | frisbee         | 2              | 10          |
+        | 2                 | kite            | 1              | 20          |    
 
 Scenario: The server is running 
     When I visit the "Home Page"
