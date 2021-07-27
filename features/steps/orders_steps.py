@@ -13,6 +13,7 @@ For information on Waiting until elements are present in the HTML see:
 @given(u'the following orders')
 def step_impl(context):
     """ Delete all Orders and load new ones """
+    context.order_ids = list()
     headers = {'Content-Type': 'application/json'}
     # list all of the orders and delete them one by one
     context.resp = requests.get(context.base_url + '/orders', headers=headers)
