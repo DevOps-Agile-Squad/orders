@@ -5,10 +5,10 @@ Feature: The orders service back-end
 
 Background: 
     Given the following orders
-        | id         | customer_id | address         | status           | 
-        | 1          | 1           | 101 king st     | Completed        |         
-        | 2          | 2           | 102 king st     | Processing       |       
-        | 3          | 3           | 103 king st     | Processing       |   
+        | customer_id    | address         | status           | 
+        | 2002           | 101 king st     | Completed        |       
+        | 2334           | 102 king st     | Processing       |       
+        | 7442           | 103 king st     | Processing       | 
 
     Given the following items
         | order_id_index    | item_name       | quantity       | price       | 
@@ -21,9 +21,11 @@ Scenario: The server is running
     Then I should see "Orders RESTful Service" in the title
     And I should not see "404 Not Found"
 
-
-
-
+Scenario: Delete an Order   
+    When I visit the "Home Page"
+    And I press the "List" button
+    Then I should see the message "Success"
+    And I should see "2002" in the results
 
 
 
