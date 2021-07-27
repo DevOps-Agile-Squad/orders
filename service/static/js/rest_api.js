@@ -6,7 +6,7 @@ $(() => {
 
     // Updates the form with data from the response
     const updateOrderFormData = (res, method) => {
-        if (method === "retrieve") {
+        if (method !== "search") {
             $("#order_id").val(res.id);
             $("#customer_id").val(res.customer_id);
             $("#address").val(res.address);
@@ -129,7 +129,7 @@ $(() => {
         });
 
         ajax.done((res) => {
-            updateOrderFormData(res)
+            updateOrderFormData(res, "create")
             flashMessage("Success")
         });
 
@@ -178,7 +178,7 @@ $(() => {
             })
 
             _ajax.done((res) => {
-                updateOrderFormData(res)
+                updateOrderFormData(res, "update")
                 listOrders(res, "update")
                 flashMessage("Success")
             });
@@ -243,7 +243,7 @@ $(() => {
 
         ajax.done((res) => {
             listOrders(res, "search")
-            updateOrderFormData(res)
+            updateOrderFormData(res, "search")
             flashMessage("Success")
         });
 
