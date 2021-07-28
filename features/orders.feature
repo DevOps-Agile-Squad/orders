@@ -75,3 +75,20 @@ Scenario: Update a Pet
     And I press the "List" button
     Then I should see "106 king st" in the results
     Then I should not see "101 king st" in the results
+
+
+Scenario: Read an Order
+    When I visit the "Home Page"
+    And I set the "Customer_ID" to "2002"
+    And I press the "Search" button
+    Then I should see "101 king st" in the "Address" field
+    And I should see "Completed" in the "Status" dropdown
+    When I copy the "Order_Id" field
+    And I press the "Clear" button
+    And I paste the "Order_Id" field
+    And I press the "Retrieve" button
+    Then I should see the message "Success"
+    And I should see "101 king st" in the "Address" field
+    And I should see "Completed" in the "Status" dropdown
+    And I should see "2002" in the "Customer_ID" field
+    And I should not see "404 Not Found"
