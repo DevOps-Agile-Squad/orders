@@ -38,10 +38,3 @@ Feature: The orders service back-end
         Then I should see "4869" in the "Customer_ID" field
         And I should see "221B Baker Street" in the "Address" field
         And I should see "Processing" in the "Status" dropdown
-
-
-
-
-
-
-

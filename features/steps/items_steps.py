@@ -20,3 +20,4 @@ def step_impl(context):
         payload = json.dumps(data)
         context.resp = requests.post(create_url, data=payload, headers=headers)
         expect(context.resp.status_code).to_equal(201)
+    context.order_ids = list()
