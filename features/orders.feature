@@ -24,6 +24,10 @@ Scenario: The server is running
 Scenario: Create a new Order
     When I visit the "Home Page"
     And I set the "Customer_ID" to "4869"
+    And I press the "Search" button
+    Then I should see the message "No orders found"
+    When I press the "Clear" button
+    And I set the "Customer_ID" to "4869"
     And I set the "Address" to "221B Baker Street"
     And I select "Processing" in the "Status" dropdown
     And I press the "Create" button
@@ -41,27 +45,23 @@ Scenario: Create a new Order
 
 Scenario: Delete an Order   
     When I visit the "Home Page"
-    And I press the "List" button
+    And I set the "Customer_ID" to "2002"
+    And I press the "Search" button
     Then I should see the message "Success"
-    And I should not see "2003" in the results
-    When I set the "Customer_ID" to "2003"
-    When I set the "Address" to "104"
-    And I press the "Create" button
-    Then I should see the message "Success"
-    When I press the "List" button
-    Then I should see the message "Success"
-    And I should see "2003" in the results
+    And I should see "101 king st" in the "Address" field
+    And I should see "Completed" in the "Status" dropdown
     When I press the "Delete" button
     Then I should see the message "Order has been Deleted!"
-    When I press the "List" button
-    Then I should see the message "Success"
-    And I should not see "2003" in the results
+    When I set the "Customer_ID" to "2002"
+    And I press the "Search" button
+    Then I should see the message "No orders found"
 
-Scenario: Update a Pet
+Scenario: Update a Order
     When I visit the "Home Page"
     And I set the "Customer_ID" to "2002"
     And I press the "Search" button
-    Then I should see "101 king st" in the "Address" field
+    Then I should see the message "Success" 
+    And I should see "101 king st" in the "Address" field
     And I should see "Completed" in the "Status" dropdown
     When I change "Address" to "106 king st"
     And I press the "Update" button
@@ -81,7 +81,8 @@ Scenario: Read an Order
     When I visit the "Home Page"
     And I set the "Customer_ID" to "2002"
     And I press the "Search" button
-    Then I should see "101 king st" in the "Address" field
+    Then I should see the message "Success" 
+    And I should see "101 king st" in the "Address" field
     And I should see "Completed" in the "Status" dropdown
     When I copy the "Order_Id" field
     And I press the "Clear" button
