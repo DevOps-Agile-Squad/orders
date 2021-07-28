@@ -15,7 +15,32 @@ before_script:
 install: "pip3 install -r requirements.txt"
 
 # command to run tests
-script: nosetests
+jobs:
+  include:
+    - stage: Test
+      name: TDD
+      script: nosetests
+
+    - stage: Test
+      name: BDD
+      addons:
+        chrome: stable
+        apt:
+          packages:
+#             - chromium-chromedriver
+            - python3-selenium
+      before_script:
+        - psql -c 'create database test;' -U postgres
+        - psql --version
+        - LATEST_CHROMEDRIVER_VERSION=`curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE"`
+        - curl "https://chromedriver.storage.googleapis.com/${LATEST_CHROMEDRIVER_VERSION}/chromedriver_linux64.zip" -O
+        - unzip chromedriver_linux64.zip -d ~/bin
+        - chromedriver --version
+        - gunicorn --log-level=debug --bind=127.0.0.1:5000 service:app & # start a Web server in the background
+        - sleep 5 # give Web server some time to bind to sockets, etc
+        - curl -I http://localhost:5000/ # make sure the service is up
+      script:
+        - behave
 
 after_success:
- - codecov
+  - codecov
