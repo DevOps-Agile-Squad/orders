@@ -242,9 +242,14 @@ $(() => {
         
 
         ajax.done((res) => {
-            listOrders(res, "search")
-            updateOrderFormData(res, "search")
-            flashMessage("Success")
+            if (res.length === 0){
+                flashMessage("No orders found")
+            }
+            else {
+                listOrders(res, "search")
+                updateOrderFormData(res, "search")
+                flashMessage("Success")
+            }
         });
 
         ajax.fail((res) => {
