@@ -107,7 +107,30 @@ def step_impl(context, text, element_name):
     element.select_by_visible_text(text)
 
 
-@then('I should see "{text}" in the "{element_name}" dropdown')
+##################################################################
+# This code works because of the following naming convention:
+# The id field for text input in the html is the element name
+# (space should be replaced with '_')
+# so the Address field has an id='address'
+# Order Id firld has an id='order_id'
+# We can then lowercase the name to get the id
+#
+# Notice: the only exception is item_order_id
+# so we need to add some sepecific steps for item_order_id
+##################################################################
+@then(u'I should see "{text}" in the "{element_name}" field')
+def step_impl(context, text, element_name):
+    element_id = element_name.lower()
+    found = WebDriverWait(context.driver, context.WAIT_SECONDS).until(
+        expected_conditions.text_to_be_present_in_element_value(
+            (By.ID, element_id),
+            text
+        )
+    )
+    expect(found).to_be(True)
+
+
+@then(u'I should see "{text}" in the "{element_name}" dropdown')
 def step_impl(context, text, element_name):
     element_id = element_name.lower()
     element = Select(context.driver.find_element_by_id(element_id))
@@ -121,22 +144,20 @@ def step_impl(context, element_name):
     expect(element.get_attribute('value')).to_be(u'')
 
 
-@then('I should see "{text_string}" in the "{element_name}" field')
-def step_impl(context, text_string, element_name):
+@when(u'I change "{element_name}" to "{text}"')
+def step_impl(context, text, element_name):
     element_id = element_name.lower()
-    found = WebDriverWait(context.driver, context.WAIT_SECONDS).until(
-        expected_conditions.text_to_be_present_in_element_value(
-            (By.ID, element_id),
-            text_string
-        )
+    element = WebDriverWait(context.driver, context.WAIT_SECONDS).until(
+        expected_conditions.presence_of_element_located((By.ID, element_id))
     )
-    expect(found).to_be(True)
+    element.clear()
+    element.send_keys(text)
 
 
 ##################################################################
 # These two function simulate copy and paste
 ##################################################################
-@when('I copy the "{element_name}" field')
+@when(u'I copy the "{element_name}" field')
 def step_impl(context, element_name):
     element_id = element_name.lower()
     element = WebDriverWait(context.driver, context.WAIT_SECONDS).until(
@@ -146,7 +167,7 @@ def step_impl(context, element_name):
     logging.info('Clipboard contains: %s', context.clipboard)
 
 
-@when('I paste the "{element_name}" field')
+@when(u'I paste the "{element_name}" field')
 def step_impl(context, element_name):
     element_id = element_name.lower()
     element = WebDriverWait(context.driver, context.WAIT_SECONDS).until(
