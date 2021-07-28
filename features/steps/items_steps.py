@@ -1,7 +1,8 @@
 import json
 import requests
 from behave import *
-from compare import expect, ensure 
+from compare import expect, ensure
+
 
 @given(u'the following items')
 def step_impl(context):
@@ -15,7 +16,7 @@ def step_impl(context):
             "item_name": row['item_name'],
             "quantity": row['quantity'],
             "price": row["price"]
-            }
+        }
         payload = json.dumps(data)
         context.resp = requests.post(create_url, data=payload, headers=headers)
         expect(context.resp.status_code).to_equal(201)
