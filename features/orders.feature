@@ -93,3 +93,17 @@ Scenario: Read an Order
     And I should see "Completed" in the "Status" dropdown
     And I should see "2002" in the "Customer_ID" field
     And I should not see "404 Not Found"
+
+Scenario: Cancel an order
+    When I visit the "Home Page"
+    And I set the "Customer_ID" to "2334"
+    And I press the "Search" button
+    Then I should see the message "Success"
+    And I should see "102 king st" in the "Address" field
+    And I should see "Processing" in the "Status" dropdown
+    When I press the "Cancel" button
+    Then I should see the message "Order has been Cancelled!"
+    When I set the "Customer_ID" to "2334"
+    And I press the "Search" button
+    Then I should see the message "Success"
+    And I should see "Cancelled" in the "Status" dropdown
