@@ -76,7 +76,6 @@ Scenario: Update a Order
     Then I should see "106 king st" in the results
     Then I should not see "101 king st" in the results
 
-
 Scenario: Read an Order
     When I visit the "Home Page"
     And I set the "Customer_ID" to "2002"
@@ -120,7 +119,7 @@ Scenario: List all order
     And I should see "102 king st" in the results
     And I should see "Processing" in the results
     And I should see "frisbee" in the results
-     And I should see "7442" in the results
+    And I should see "7442" in the results
     And I should see "103 king st" in the results
     And I should see "Processing" in the results
     And I should see "kite" in the results
