@@ -107,3 +107,21 @@ Scenario: Cancel an order
     And I press the "Search" button
     Then I should see the message "Success"
     And I should see "Cancelled" in the "Status" dropdown
+
+Scenario: List all order
+    When I visit the "Home Page"
+    And I press the "List" button
+    Then I should see the message "Success"
+    And I should see "2002" in the results
+    And I should see "101 king st" in the results
+    And I should see "Completed" in the results
+    And I should see "keyboard" in the results
+    And I should see "2334" in the results
+    And I should see "102 king st" in the results
+    And I should see "Processing" in the results
+    And I should see "frisbee" in the results
+     And I should see "7442" in the results
+    And I should see "103 king st" in the results
+    And I should see "Processing" in the results
+    And I should see "kite" in the results
+    
