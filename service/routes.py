@@ -31,6 +31,7 @@ import os
 import sys
 import logging
 from flask import Flask, jsonify, request, url_for, make_response, abort
+from flask_restx import Api, Resource, fields, reqparse, inputs
 from werkzeug.exceptions import NotFound
 
 # For this example we'll use SQLAlchemy, a popular ORM that supports a
@@ -50,6 +51,163 @@ def index():
     """Root URL response"""
     return app.send_static_file("index.html")
 
+######################################################################
+# Configure Swagger before initializing it
+######################################################################
+api = Api(app,
+          version='1.0.0',
+          title='Order Demo REST API Service',
+          description='This is an Orders service api',
+          default='orders',
+          default_label='Order service operations',
+          doc='/apidocs', # default also could use doc='/apidocs/'
+          #authorizations=authorizations,
+          prefix='/api'
+         )
+
+
+# Define the model so that the docs reflect what can be sent
+create_model = api.model('Order', {
+    'customer_id': fields.Integer(required=True,
+                          description='The customer id the order is associated with'),
+    'address': fields.String(required=True,
+                              description='The delivery address'),
+    'status': fields.String(required=True,
+                                description='The current status of the order', enum=['Received', 'Processing', 'Completed', 'Cancelled', 'Returned'])
+})
+
+# class that inherits from fields.Raw so that it can be used in fields.List() 
+class OrderItem(fields.Raw):
+    def format(self, value):
+        return {'id': value.id,
+                'order_id': value.order_id,
+                'quantity': value.quantity,
+                'price': value.price,
+                'item_name': value.item_name}
+
+order_model = api.inherit(
+    'OrderModel', 
+    create_model,
+    {
+        'id': fields.String(readOnly=True,
+                            description='The unique id assigned internally by service'),
+        'items': fields.List(cls_or_instance=OrderItem,
+                                description='collection of all items assigned to an order')
+    }
+)
+
+# query string arguments (used as filters in List function)
+order_args = reqparse.RequestParser()
+order_args.add_argument('customer_id', type=int, required=False, help='List Orders by customer_id')
+order_args.add_argument('item', type=str, required=False, help='List Orders by item')
+
+######################################################################
+#  PATH: /orders/{id}
+######################################################################
+@api.route('/orders/<order_id>')
+@api.param('order_id', 'The Order identifier')
+class OrderResource(Resource):
+    """
+    OrderResource class
+    Allows the manipulation of a single Order
+    GET /order{id} - Returns a Order with the id
+    PUT /order{id} - Update a Order with the id
+    DELETE /order{id} -  Deletes a Order with the id
+    """
+
+    #------------------------------------------------------------------
+    # RETRIEVE AN ORDER
+    #------------------------------------------------------------------
+    @api.doc('get_orders')
+    @api.response(404, 'Order not found')
+    @api.marshal_with(order_model)
+    def get(self, order_id):
+        """
+        Retrieve a single Order
+        This endpoint will return an Order based on it's id
+        """
+        pass
+
+    #------------------------------------------------------------------
+    # UPDATE A EXISTING ORDER
+    #------------------------------------------------------------------
+    @api.doc('update_orders')
+    @api.response(404, 'Order not found')
+    @api.response(400, 'The posted Order data was not valid')
+    @api.expect(order_model)
+    @api.marshal_with(order_model)
+    def put(self, order_id):
+        """
+        Update a Order 
+        This endpoint will update a Order based the body that is posted
+        """
+        pass
+
+    #------------------------------------------------------------------
+    # DELETE A ORDER
+    #------------------------------------------------------------------
+    @api.doc('delete_orders')
+    @api.response(204, 'Order deleted')
+    def delete(self, order_id):
+        """
+        Delete a Order
+        This endpoint will delete a Order based the id specified in the path
+        """
+        pass
+
+######################################################################
+#  PATH: /orders
+######################################################################
+@api.route('/orders', strict_slashes=False)
+class OrderCollection(Resource):
+    """ Handles all interactions with collections of Orders """
+    #------------------------------------------------------------------
+    # LIST ALL Orders
+    #------------------------------------------------------------------
+    @api.doc('list_orders')
+    @api.expect(order_args, validate=True)
+    @api.marshal_list_with(order_model)
+    def get(self):
+        """ Returns all of the Orders """
+        pass
+
+
+    #------------------------------------------------------------------
+    # ADD A NEW Order
+    #------------------------------------------------------------------
+    @api.doc('create_orders')
+    @api.response(400, 'The posted data was not valid')
+    @api.expect(create_model)
+    @api.marshal_with(order_model, code=201)
+    def post(self):
+        """
+        Creates a Order
+        This endpoint will create a Order based the data in the body that is posted
+        """
+        pass
+
+
+######################################################################
+#  PATH: /orders/{id}/cancel
+######################################################################
+@api.route('/orders/<order_id>/cancel')
+@api.param('order_id', 'The Order identifier')
+class CancelResource(Resource):
+    """ Cancel actions on a Order """
+    @api.doc('cancel_orders')
+    @api.response(404, 'Order not found')
+    @api.response(409, 'The Order is not available for cancellation')
+    def put(self, order_id):
+        """
+        Cancel a Order
+        This endpoint will cancel a Order 
+        """
+        pass
+
+
+######################################################################
+# ALL TRADITIONAL ROUTES (NOT YET REFACTORED) ARE BELOW 
+######################################################################
 
 ######################################################################
 # LIST ALL CUSTOMER ORDERS
