@@ -74,22 +74,13 @@ create_model = api.model('Order', {
                                 description='The current status of the order', enum=['Received', 'Processing', 'Completed', 'Cancelled', 'Returned'])
 })
 
-# class that inherits from fields.Raw so that it can be used in fields.List() 
-class OrderItem(fields.Raw):
-    def format(self, value):
-        return {'id': value.id,
-                'order_id': value.order_id,
-                'quantity': value.quantity,
-                'price': value.price,
-                'item_name': value.item_name}
-
 order_model = api.inherit(
     'OrderModel', 
     create_model,
     {
-        'id': fields.String(readOnly=True,
+        'id': fields.Integer(readOnly=True,
                             description='The unique id assigned internally by service'),
-        'items': fields.List(cls_or_instance=OrderItem,
+        'items': fields.List(cls_or_instance=fields.Raw,
                                 description='collection of all items assigned to an order')
     }
 )
@@ -100,31 +91,52 @@ order_model = api.inherit(
 # order_args.add_argument('item', type=str, required=False, help='List Orders by item')
 
 ######################################################################
+# Special Error Handlers
+######################################################################
+@api.errorhandler(DataValidationError)
+def request_validation_error(error):
+    """ Handles Value Errors from bad data """
+    message = str(error)
+    app.logger.error(message)
+    return {
+        'status_code': status.HTTP_400_BAD_REQUEST,
+        'error': 'Bad Request',
+        'message': message
+    }, status.HTTP_400_BAD_REQUEST
+
+
+######################################################################
 #  PATH: /orders/{id}
 ######################################################################
-# @api.route('/orders/<order_id>')
-# @api.param('order_id', 'The Order identifier')
-# class OrderResource(Resource):
-#     """
-#     OrderResource class
-#     Allows the manipulation of a single Order
-#     GET /order{id} - Returns a Order with the id
-#     PUT /order{id} - Update a Order with the id
-#     DELETE /order{id} -  Deletes a Order with the id
-#     """
+@api.route('/orders/<order_id>')
+@api.param('order_id', 'The Order identifier')
+class OrderResource(Resource):
+    """
+    OrderResource class
+    Allows the manipulation of a single Order
+    GET /order{id} - Returns a Order with the id
+    PUT /order{id} - Update a Order with the id
+    DELETE /order{id} -  Deletes a Order with the id
+    """
 
     #------------------------------------------------------------------
     # RETRIEVE AN ORDER
     #------------------------------------------------------------------
-    # @api.doc('get_orders')
-    # @api.response(404, 'Order not found')
-    # @api.marshal_with(order_model)
-    # def get(self, order_id):
-    #     """
-    #     Retrieve a single Order
-    #     This endpoint will return an Order based on it's id
-    #     """
-    #     pass
+    @api.doc('get_orders')
+    @api.response(404, 'Order not found')
+    @api.marshal_with(order_model)
+    def get(self, order_id):
+        """
+        Retrieve a single Order
+        This endpoint will return an Order based on it's id
+        """
+        app.logger.info("Request for order with id: %s", order_id)
+        order = CustomerOrder.find(order_id)
+        if not order:
+            abort(status.HTTP_404_NOT_FOUND, "Order with id '{}' was not found.".format(order_id))
+
+        app.logger.info("Returning order: %s", order_id)
+        return order.serialize(), status.HTTP_200_OK
 
     #------------------------------------------------------------------
     # UPDATE A EXISTING ORDER
@@ -175,7 +187,7 @@ class OrderCollection(Resource):
     #------------------------------------------------------------------
     @api.doc('create_orders')
     @api.response(400, 'The posted data was not valid')
-    @api.expect(create_model)
+    @api.expect(create_model, validate=True)
     @api.marshal_with(order_model, code=201)
     def post(self):
         """
@@ -185,10 +197,10 @@ class OrderCollection(Resource):
         app.logger.info("Request to create a customer order")
         check_content_type("application/json")
         order = CustomerOrder()
-        order.deserialize(request.get_json())
+        order.deserialize(api.payload)
         order.create()
         message = order.serialize()
-        location_url = url_for("get_order", order_id=order.id, _external=True)
+        location_url = api.url_for(OrderResource, order_id=order.id, _external=True)
 
         app.logger.info("Order with ID [%s] created.", order.id)
         return message, status.HTTP_201_CREATED, {"Location": location_url}
@@ -241,19 +253,19 @@ def list_orders():
 ######################################################################
 # RETRIEVE A CUSTOMER ORDER
 ######################################################################
-@app.route("/orders/<int:order_id>", methods=["GET"])
-def get_order(order_id):
-    """
-    Retrieve a single order
-    This endpoint will return a customer_order based on it's id
-    """
-    app.logger.info("Request for order with id: %s", order_id)
-    order = CustomerOrder.find(order_id)
-    if not order:
-        raise NotFound("Order with id '{}' was not found.".format(order_id))
+# @app.route("/orders/<int:order_id>", methods=["GET"])
+# def get_order(order_id):
+#     """
+#     Retrieve a single order
+#     This endpoint will return a customer_order based on it's id
+#     """
+#     app.logger.info("Request for order with id: %s", order_id)
+#     order = CustomerOrder.find(order_id)
+#     if not order:
+#         raise NotFound("Order with id '{}' was not found.".format(order_id))
 
-    app.logger.info("Returning order: %s", order_id)
-    return make_response(jsonify(order.serialize()), status.HTTP_200_OK)
+#     app.logger.info("Returning order: %s", order_id)
+#     return make_response(jsonify(order.serialize()), status.HTTP_200_OK)
 
 ######################################################################
 # GET AN ITEM BY ORDER ID AND ITEM ID

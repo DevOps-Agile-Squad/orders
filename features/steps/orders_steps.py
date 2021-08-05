@@ -28,7 +28,7 @@ def step_impl(context):
     create_url = context.base_url + '/orders'
     for row in context.table:
         data = {
-            "customer_id": row['customer_id'],
+            "customer_id": int(row['customer_id']),
             "address": row['address'],
             "status": row['status'],
             "items": list()
