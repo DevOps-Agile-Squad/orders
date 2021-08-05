@@ -108,16 +108,16 @@ def request_validation_error(error):
 ######################################################################
 #  PATH: /orders/{id}
 ######################################################################
-@api.route('/orders/<order_id>')
-@api.param('order_id', 'The Order identifier')
-class OrderResource(Resource):
-    """
-    OrderResource class
-    Allows the manipulation of a single Order
-    GET /order{id} - Returns a Order with the id
-    PUT /order{id} - Update a Order with the id
-    DELETE /order{id} -  Deletes a Order with the id
-    """
+# @api.route('/orders/<order_id>')
+# @api.param('order_id', 'The Order identifier')
+# class OrderResource(Resource):
+#     """
+#     OrderResource class
+#     Allows the manipulation of a single Order
+#     GET /order{id} - Returns a Order with the id
+#     PUT /order{id} - Update a Order with the id
+#     DELETE /order{id} -  Deletes a Order with the id
+#     """
 
     #------------------------------------------------------------------
     # RETRIEVE AN ORDER
