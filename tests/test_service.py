@@ -207,24 +207,10 @@ class TestCustomerOrderServer(unittest.TestCase):  # pylint: disable=too-many-pu
         )
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
 
-    def test_create_order_error(self):
-        """Test that invalid content type are ignored."""
-        resp = self.app.post(
-            BASE_URL, data='Non JSON data type',
-            content_type="application/x-www-form-urlencoded")
-        self.assertEqual(resp.status_code,
-                         status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
-
     def test_create_order_no_data(self):
         """Create an order with missing data"""
         resp = self.app.post(BASE_URL, json={}, content_type=CONTENT_TYPE_JSON)
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
-
-    def test_create_order_no_content_type(self):
-        """Create an Order with no content type"""
-        resp = self.app.post(BASE_URL)
-        self.assertEqual(resp.status_code,
-                         status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
 
     def test_update_order(self):
         """Update an existing CustomerOrder"""
