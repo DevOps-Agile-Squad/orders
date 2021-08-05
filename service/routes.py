@@ -61,8 +61,6 @@ api = Api(app,
           default='orders',
           default_label='Order service operations',
           doc='/apidocs', # default also could use doc='/apidocs/'
-          #authorizations=authorizations,
-        #   prefix='/api'
          )
 
 
@@ -104,29 +102,35 @@ order_model = api.inherit(
 ######################################################################
 #  PATH: /orders/{id}
 ######################################################################
-# @api.route('/orders/<order_id>')
-# @api.param('order_id', 'The Order identifier')
-# class OrderResource(Resource):
-#     """
-#     OrderResource class
-#     Allows the manipulation of a single Order
-#     GET /order{id} - Returns a Order with the id
-#     PUT /order{id} - Update a Order with the id
-#     DELETE /order{id} -  Deletes a Order with the id
-#     """
+@api.route('/orders/<order_id>')
+@api.param('order_id', 'The Order identifier')
+class OrderResource(Resource):
+    """
+    OrderResource class
+    Allows the manipulation of a single Order
+    GET /order{id} - Returns a Order with the id
+    PUT /order{id} - Update a Order with the id
+    DELETE /order{id} -  Deletes a Order with the id
+    """
 
     #------------------------------------------------------------------
     # RETRIEVE AN ORDER
     #------------------------------------------------------------------
-    # @api.doc('get_orders')
-    # @api.response(404, 'Order not found')
-    # @api.marshal_with(order_model)
-    # def get(self, order_id):
-    #     """
-    #     Retrieve a single Order
-    #     This endpoint will return an Order based on it's id
-    #     """
-    #     pass
+    @api.doc('get_orders')
+    @api.response(404, 'Order not found')
+    @api.marshal_with(order_model)
+    def get(self, order_id):
+        """
+        Retrieve a single Order
+        This endpoint will return an Order based on it's id
+        """
+        app.logger.info("Request for order with id: %s", order_id)
+        order = CustomerOrder.find(order_id)
+        if not order:
+            raise NotFound("Order with id '{}' was not found.".format(order_id))
+
+        app.logger.info("Returning order: %s", order_id)
+        return order.serialize(), status.HTTP_200_OK
 
     #------------------------------------------------------------------
     # UPDATE A EXISTING ORDER
@@ -190,7 +194,7 @@ class OrderCollection(Resource):
         order.deserialize(request.get_json())
         order.create()
         message = order.serialize()
-        location_url = url_for("get_order", order_id=order.id, _external=True)
+        location_url = api.url_for(OrderResource, order_id=order.id, _external=True)
 
         app.logger.info("Order with ID [%s] created.", order.id)
         return message, status.HTTP_201_CREATED, {"Location": location_url}
