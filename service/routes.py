@@ -62,7 +62,7 @@ api = Api(app,
           default_label='Order service operations',
           doc='/apidocs', # default also could use doc='/apidocs/'
           #authorizations=authorizations,
-          prefix='/api'
+        #   prefix='/api'
          )
 
 
@@ -97,63 +97,63 @@ order_model = api.inherit(
 )
 
 # query string arguments (used as filters in List function)
-order_args = reqparse.RequestParser()
-order_args.add_argument('customer_id', type=int, required=False, help='List Orders by customer_id')
-order_args.add_argument('item', type=str, required=False, help='List Orders by item')
+# order_args = reqparse.RequestParser()
+# order_args.add_argument('customer_id', type=int, required=False, help='List Orders by customer_id')
+# order_args.add_argument('item', type=str, required=False, help='List Orders by item')
 
 ######################################################################
 #  PATH: /orders/{id}
 ######################################################################
-@api.route('/orders/<order_id>')
-@api.param('order_id', 'The Order identifier')
-class OrderResource(Resource):
-    """
-    OrderResource class
-    Allows the manipulation of a single Order
-    GET /order{id} - Returns a Order with the id
-    PUT /order{id} - Update a Order with the id
-    DELETE /order{id} -  Deletes a Order with the id
-    """
+# @api.route('/orders/<order_id>')
+# @api.param('order_id', 'The Order identifier')
+# class OrderResource(Resource):
+#     """
+#     OrderResource class
+#     Allows the manipulation of a single Order
+#     GET /order{id} - Returns a Order with the id
+#     PUT /order{id} - Update a Order with the id
+#     DELETE /order{id} -  Deletes a Order with the id
+#     """
 
     #------------------------------------------------------------------
     # RETRIEVE AN ORDER
     #------------------------------------------------------------------
-    @api.doc('get_orders')
-    @api.response(404, 'Order not found')
-    @api.marshal_with(order_model)
-    def get(self, order_id):
-        """
-        Retrieve a single Order
-        This endpoint will return an Order based on it's id
-        """
-        pass
+    # @api.doc('get_orders')
+    # @api.response(404, 'Order not found')
+    # @api.marshal_with(order_model)
+    # def get(self, order_id):
+    #     """
+    #     Retrieve a single Order
+    #     This endpoint will return an Order based on it's id
+    #     """
+    #     pass
 
     #------------------------------------------------------------------
     # UPDATE A EXISTING ORDER
     #------------------------------------------------------------------
-    @api.doc('update_orders')
-    @api.response(404, 'Order not found')
-    @api.response(400, 'The posted Order data was not valid')
-    @api.expect(order_model)
-    @api.marshal_with(order_model)
-    def put(self, order_id):
-        """
-        Update a Order 
-        This endpoint will update a Order based the body that is posted
-        """
-        pass
+    # @api.doc('update_orders')
+    # @api.response(404, 'Order not found')
+    # @api.response(400, 'The posted Order data was not valid')
+    # @api.expect(order_model)
+    # @api.marshal_with(order_model)
+    # def put(self, order_id):
+    #     """
+    #     Update a Order 
+    #     This endpoint will update a Order based the body that is posted
+    #     """
+    #     pass
 
     #------------------------------------------------------------------
     # DELETE A ORDER
     #------------------------------------------------------------------
-    @api.doc('delete_orders')
-    @api.response(204, 'Order deleted')
-    def delete(self, order_id):
-        """
-        Delete a Order
-        This endpoint will delete a Order based the id specified in the path
-        """
-        pass
+    # @api.doc('delete_orders')
+    # @api.response(204, 'Order deleted')
+    # def delete(self, order_id):
+    #     """
+    #     Delete a Order
+    #     This endpoint will delete a Order based the id specified in the path
+    #     """
+    #     pass
 
 ######################################################################
 #  PATH: /orders
@@ -161,15 +161,15 @@ class OrderResource(Resource):
 @api.route('/orders', strict_slashes=False)
 class OrderCollection(Resource):
     """ Handles all interactions with collections of Orders """
-    #------------------------------------------------------------------
-    # LIST ALL Orders
-    #------------------------------------------------------------------
-    @api.doc('list_orders')
-    @api.expect(order_args, validate=True)
-    @api.marshal_list_with(order_model)
-    def get(self):
-        """ Returns all of the Orders """
-        pass
+#     #------------------------------------------------------------------
+#     # LIST ALL Orders
+#     #------------------------------------------------------------------
+#     @api.doc('list_orders')
+#     @api.expect(order_args, validate=True)
+#     @api.marshal_list_with(order_model)
+#     def get(self):
+#         """ Returns all of the Orders """
+#         pass
 
 
     #------------------------------------------------------------------
@@ -184,25 +184,34 @@ class OrderCollection(Resource):
         Creates a Order
         This endpoint will create a Order based the data in the body that is posted
         """
-        pass
+        app.logger.info("Request to create a customer order")
+        check_content_type("application/json")
+        order = CustomerOrder()
+        order.deserialize(request.get_json())
+        order.create()
+        message = order.serialize()
+        location_url = url_for("get_order", order_id=order.id, _external=True)
+
+        app.logger.info("Order with ID [%s] created.", order.id)
+        return message, status.HTTP_201_CREATED, {"Location": location_url}
 
 
 ######################################################################
 #  PATH: /orders/{id}/cancel
 ######################################################################
-@api.route('/orders/<order_id>/cancel')
-@api.param('order_id', 'The Order identifier')
-class CancelResource(Resource):
-    """ Cancel actions on a Order """
-    @api.doc('cancel_orders')
-    @api.response(404, 'Order not found')
-    @api.response(409, 'The Order is not available for cancellation')
-    def put(self, order_id):
-        """
-        Cancel a Order
-        This endpoint will cancel a Order 
-        """
-        pass
+# @api.route('/orders/<order_id>/cancel')
+# @api.param('order_id', 'The Order identifier')
+# class CancelResource(Resource):
+#     """ Cancel actions on a Order """
+#     @api.doc('cancel_orders')
+#     @api.response(404, 'Order not found')
+#     @api.response(409, 'The Order is not available for cancellation')
+#     def put(self, order_id):
+#         """
+#         Cancel a Order
+#         This endpoint will cancel a Order 
+#         """
+#         pass
 
 
 ######################################################################
@@ -291,24 +300,24 @@ def add_item(order_id):
 ######################################################################
 # ADD A NEW order
 ######################################################################
-@app.route("/orders", methods=["POST"])
-def create_order():
-    """
-    Creates a order
-    This endpoint will create a order based the data in the body that is posted
-    """
-    app.logger.info("Request to create a customer order")
-    check_content_type("application/json")
-    order = CustomerOrder()
-    order.deserialize(request.get_json())
-    order.create()
-    message = order.serialize()
-    location_url = url_for("get_order", order_id=order.id, _external=True)
+# @app.route("/orders", methods=["POST"])
+# def create_order():
+#     """
+#     Creates a order
+#     This endpoint will create a order based the data in the body that is posted
+#     """
+#     app.logger.info("Request to create a customer order")
+#     check_content_type("application/json")
+#     order = CustomerOrder()
+#     order.deserialize(request.get_json())
+#     order.create()
+#     message = order.serialize()
+#     location_url = url_for("get_order", order_id=order.id, _external=True)
 
-    app.logger.info("Order with ID [%s] created.", order.id)
-    return make_response(
-        jsonify(message), status.HTTP_201_CREATED, {"Location": location_url}
-    )
+#     app.logger.info("Order with ID [%s] created.", order.id)
+#     return make_response(
+#         jsonify(message), status.HTTP_201_CREATED, {"Location": location_url}
+#     )
 
 
 ######################################################################
