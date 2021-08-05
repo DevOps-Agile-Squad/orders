@@ -93,24 +93,24 @@ order_model = api.inherit(
 ######################################################################
 # Special Error Handlers
 ######################################################################
-@api.errorhandler(DataValidationError)
-def request_validation_error(error):
-    """ Handles Value Errors from bad data """
-    message = str(error)
-    app.logger.error(message)
-    return {
-        'status_code': status.HTTP_400_BAD_REQUEST,
-        'error': 'Bad Request',
-        'message': message
-    }, status.HTTP_400_BAD_REQUEST
+# @api.errorhandler(DataValidationError)
+# def request_validation_error(error):
+#     """ Handles Value Errors from bad data """
+#     message = str(error)
+#     app.logger.error(message)
+#     return {
+#         'status_code': status.HTTP_400_BAD_REQUEST,
+#         'error': 'Bad Request',
+#         'message': message
+#     }, status.HTTP_400_BAD_REQUEST
 
 
 ######################################################################
 #  PATH: /orders/{id}
 ######################################################################
-# @api.route('/orders/<order_id>')
-# @api.param('order_id', 'The Order identifier')
-# class OrderResource(Resource):
+@api.route('/orders/<order_id>')
+@api.param('order_id', 'The Order identifier')
+class OrderResource(Resource):
 #     """
 #     OrderResource class
 #     Allows the manipulation of a single Order
