@@ -90,34 +90,20 @@ order_model = api.inherit(
 # order_args.add_argument('customer_id', type=int, required=False, help='List Orders by customer_id')
 # order_args.add_argument('item', type=str, required=False, help='List Orders by item')
 
-######################################################################
-# Special Error Handlers
-######################################################################
-@api.errorhandler(DataValidationError)
-def request_validation_error(error):
-    """ Handles Value Errors from bad data """
-    message = str(error)
-    app.logger.error(message)
-    return {
-        'status_code': status.HTTP_400_BAD_REQUEST,
-        'error': 'Bad Request',
-        'message': message
-    }, status.HTTP_400_BAD_REQUEST
-
 
 ######################################################################
 #  PATH: /orders/{id}
 ######################################################################
-@api.route('/orders/<order_id>')
-@api.param('order_id', 'The Order identifier')
-class OrderResource(Resource):
-    """
-    OrderResource class
-    Allows the manipulation of a single Order
-    GET /order{id} - Returns a Order with the id
-    PUT /order{id} - Update a Order with the id
-    DELETE /order{id} -  Deletes a Order with the id
-    """
+# @api.route('/orders/<order_id>')
+# @api.param('order_id', 'The Order identifier')
+# class OrderResource(Resource):
+#     """
+#     OrderResource class
+#     Allows the manipulation of a single Order
+#     GET /order{id} - Returns a Order with the id
+#     PUT /order{id} - Update a Order with the id
+#     DELETE /order{id} -  Deletes a Order with the id
+#     """
 
     #------------------------------------------------------------------
     # RETRIEVE AN ORDER
@@ -201,7 +187,6 @@ class OrderCollection(Resource):
         order.create()
         message = order.serialize()
         location_url = api.url_for(OrderResource, order_id=order.id, _external=True)
-
         app.logger.info("Order with ID [%s] created.", order.id)
         return message, status.HTTP_201_CREATED, {"Location": location_url}
 
@@ -248,24 +233,6 @@ def list_orders():
     results = [order.serialize() for order in orders]
     app.logger.info("Returning %d orders", len(results))
     return make_response(jsonify(results), status.HTTP_200_OK)
-
-
-######################################################################
-# RETRIEVE A CUSTOMER ORDER
-######################################################################
-# @app.route("/orders/<int:order_id>", methods=["GET"])
-# def get_order(order_id):
-#     """
-#     Retrieve a single order
-#     This endpoint will return a customer_order based on it's id
-#     """
-#     app.logger.info("Request for order with id: %s", order_id)
-#     order = CustomerOrder.find(order_id)
-#     if not order:
-#         raise NotFound("Order with id '{}' was not found.".format(order_id))
-
-#     app.logger.info("Returning order: %s", order_id)
-#     return make_response(jsonify(order.serialize()), status.HTTP_200_OK)
 
 ######################################################################
 # GET AN ITEM BY ORDER ID AND ITEM ID
