@@ -305,7 +305,7 @@ $(() => {
         });
 
         ajax.fail((res) => {
-            flashMessage("Server error!")
+            flashMessage("Order cannot be cancelled")
         });
 
     })
