@@ -156,14 +156,20 @@ class OrderResource(Resource):
     #------------------------------------------------------------------
     # DELETE A ORDER
     #------------------------------------------------------------------
-    # @api.doc('delete_orders')
-    # @api.response(204, 'Order deleted')
-    # def delete(self, order_id):
-    #     """
-    #     Delete a Order
-    #     This endpoint will delete a Order based the id specified in the path
-    #     """
-    #     pass
+    @api.doc('delete_orders')
+    @api.response(204, 'Order deleted')
+    def delete(self, order_id):
+        """
+        Delete a Order
+        This endpoint will delete a Order based the id specified in the path
+        """
+        app.logger.info('Request to Delete a order with id [%s]', order_id)
+        order = CustomerOrder.find(order_id)
+        if order:
+            order.delete()
+            app.logger.info('Order with id [%s] was deleted', order_id)
+
+        return '', status.HTTP_204_NO_CONTENT
 
 ######################################################################
 #  PATH: /orders
@@ -329,25 +335,6 @@ def update_orders(order_id):
 
     app.logger.info("Order with ID [%s] updated.", order.id)
     return make_response(jsonify(order.serialize()), status.HTTP_200_OK)
-
-
-######################################################################
-# DELETE AN ORDER
-######################################################################
-@app.route("/orders/<int:order_id>", methods=["DELETE"])
-def delete_orders(order_id):
-    """
-    Delete a order
-
-    This endpoint will delete a order based the id specified in the path
-    """
-    app.logger.info("Request to delete order with id: %s", order_id)
-    order = CustomerOrder.find(order_id)
-    if order:
-        order.delete()
-
-    app.logger.info("order with ID [%s] delete complete.", order_id)
-    return make_response("", status.HTTP_204_NO_CONTENT)
 
 
 ######################################################################
