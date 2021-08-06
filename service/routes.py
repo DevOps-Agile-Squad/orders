@@ -225,7 +225,6 @@ class CancelResource(Resource):
     def put(self, order_id):
         """
         Cancelling an order
-
         This endpoint will cancel an order based on order_id and notify other services
         """
         app.logger.info(f"Request to cancel order with id {order_id}")
@@ -272,23 +271,6 @@ def list_orders():
     app.logger.info("Returning %d orders", len(results))
     return make_response(jsonify(results), status.HTTP_200_OK)
 
-
-######################################################################
-# RETRIEVE A CUSTOMER ORDER
-######################################################################
-# @app.route("/orders/<int:order_id>", methods=["GET"])
-# def get_order(order_id):
-#     """
-#     Retrieve a single order
-#     This endpoint will return a customer_order based on it's id
-#     """
-#     app.logger.info("Request for order with id: %s", order_id)
-#     order = CustomerOrder.find(order_id)
-#     if not order:
-#         raise NotFound("Order with id '{}' was not found.".format(order_id))
-
-#     app.logger.info("Returning order: %s", order_id)
-#     return make_response(jsonify(order.serialize()), status.HTTP_200_OK)
 
 ######################################################################
 # GET AN ITEM BY ORDER ID AND ITEM ID
