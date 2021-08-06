@@ -215,20 +215,37 @@ class OrderCollection(Resource):
 ######################################################################
 #  PATH: /orders/{id}/cancel
 ######################################################################
-# @api.route('/orders/<order_id>/cancel')
-# @api.param('order_id', 'The Order identifier')
-# class CancelResource(Resource):
-#     """ Cancel actions on a Order """
-#     @api.doc('cancel_orders')
-#     @api.response(404, 'Order not found')
-#     @api.response(409, 'The Order is not available for cancellation')
-#     def put(self, order_id):
-#         """
-#         Cancel a Order
-#         This endpoint will cancel a Order 
-#         """
-#         pass
+@api.route('/orders/<order_id>/cancel')
+@api.param('order_id', 'The Order identifier')
+class CancelResource(Resource):
+    """ Cancel actions on a Order """
+    @api.doc('cancel_orders')
+    @api.response(404, 'Order not found')
+    @api.response(409, 'The Order is not available for cancellation')
+    def put(self, order_id):
+        """
+        Cancelling an order
 
+        This endpoint will cancel an order based on order_id and notify other services
+        """
+        app.logger.info(f"Request to cancel order with id {order_id}")
+        order = CustomerOrder.find(order_id)
+        if not order:
+            abort(status.HTTP_404_NOT_FOUND, "Order with id '{}' was not found.".format(order_id))
+
+        if order.status == Status.Completed or order.status == Status.Returned:
+            abort(status.HTTP_400_BAD_REQUEST, "Order with id {order_id} is [{order.status.name}], request refused.")
+
+        if order.status == Status.Cancelled:
+            return "Order with id '{}' is already cancelled.".format(order_id), status.HTTP_200_OK
+
+        order.id = order_id
+        order.status = Status.Cancelled
+        order.save()
+        app.logger.info("Notify Shipping to cancel shipment...")
+        app.logger.info("Notify Billing to refund payment...")
+        app.logger.info(f"Order with id {order_id} cancelled successfully.")
+        return order.serialize(), status.HTTP_200_OK
 
 ######################################################################
 # ALL TRADITIONAL ROUTES (NOT YET REFACTORED) ARE BELOW 
@@ -361,42 +378,9 @@ def delete_items(order_id, item_id):
     app.logger.info(f"item with id {item_id} delete complete")
     return make_response("", status.HTTP_204_NO_CONTENT)
 
-
-######################################################################
-# CANCELLING AN ORDER
-######################################################################
-@app.route("/orders/<int:order_id>/cancel", methods=["POST"])
-def cancel_orders(order_id):
-    """
-    Cancelling an order
-
-    This endpoint will cancel an order based on order_id and notify other services
-    """
-    app.logger.info(f"Request to cancel order with id {order_id}")
-    order = CustomerOrder.find(order_id)
-    if not order:
-        return make_response(f"Order with id {order_id} is not found", status.HTTP_404_NOT_FOUND)
-
-    if order.status == Status.Completed or order.status == Status.Returned:
-        return make_response(f"Order with id {order_id} is [{order.status.name}], request refused.",
-                             status.HTTP_400_BAD_REQUEST)
-
-    if order.status == Status.Cancelled:
-        return make_response(f"Order with id {order_id} is already cancelled.", status.HTTP_200_OK)
-
-    order.id = order_id
-    order.status = Status.Cancelled
-    order.save()
-    app.logger.info("Notify Shipping to cancel shipment...")
-    app.logger.info("Notify Billing to refund payment...")
-    app.logger.info(f"Order with id {order_id} cancelled successfully.")
-    return make_response(jsonify(order.serialize()), status.HTTP_200_OK)
-
-
 ######################################################################
 #  U T I L I T Y   F U N C T I O N S
 ######################################################################
-
 
 def check_content_type(media_type):
     """Checks that the media type is correct"""
@@ -408,3 +392,8 @@ def check_content_type(media_type):
         status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
         "Content-Type must be {}".format(media_type),
     )
+
+def abort(error_code: int, message: str):
+    """Logs errors before aborting"""
+    app.logger.error(message)
+    api.abort(error_code, message)
