@@ -292,7 +292,7 @@ $(() => {
         console.log("Cancelling order")
         const orderId = $("#order_id").val();
         const ajax = $.ajax({
-            type: "POST",
+            type: "PUT",
             url: "/orders/" + orderId + "/cancel",
             contentType: "application/json",
             data: '',
@@ -305,7 +305,7 @@ $(() => {
         });
 
         ajax.fail((res) => {
-            flashMessage("Server error!")
+            flashMessage("Order cannot be cancelled")
         });
 
     })

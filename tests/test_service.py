@@ -364,7 +364,7 @@ class TestCustomerOrderServer(unittest.TestCase):  # pylint: disable=too-many-pu
 
     def test_cancel_order_not_found(self):
         """Cancelling order not exists"""
-        resp = self.app.post(f"{BASE_URL}/1/cancel")
+        resp = self.app.put(f"{BASE_URL}/1/cancel")
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_cancel_order_not_allowed(self):
@@ -382,7 +382,7 @@ class TestCustomerOrderServer(unittest.TestCase):  # pylint: disable=too-many-pu
         logging.debug(completed_order)
         # try cancelling a completed order
         completed_order.id = data["id"]
-        resp = self.app.post(f"{BASE_URL}/{completed_order.id}/cancel")
+        resp = self.app.put(f"{BASE_URL}/{completed_order.id}/cancel")
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
         # try get the order back and check for status
         resp = self.app.get(f"{BASE_URL}/{completed_order.id}")
@@ -402,7 +402,7 @@ class TestCustomerOrderServer(unittest.TestCase):  # pylint: disable=too-many-pu
         logging.debug(returned_order)
         # try cancelling a returned order
         returned_order.id = data["id"]
-        resp = self.app.post(f"{BASE_URL}/{returned_order.id}/cancel")
+        resp = self.app.put(f"{BASE_URL}/{returned_order.id}/cancel")
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
         # try get the order back and check for status
         resp = self.app.get(f"{BASE_URL}/{returned_order.id}")
@@ -424,7 +424,7 @@ class TestCustomerOrderServer(unittest.TestCase):  # pylint: disable=too-many-pu
         logging.debug(cancelled_order)
         # try cancelling a cancelled order
         cancelled_order.id = data["id"]
-        resp = self.app.post(f"{BASE_URL}/{cancelled_order.id}/cancel")
+        resp = self.app.put(f"{BASE_URL}/{cancelled_order.id}/cancel")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         # try get the order back and check for status
         resp = self.app.get(f"{BASE_URL}/{cancelled_order.id}")
@@ -446,7 +446,7 @@ class TestCustomerOrderServer(unittest.TestCase):  # pylint: disable=too-many-pu
         logging.debug(received_order)
         # try cancelling a received order
         received_order.id = data["id"]
-        resp = self.app.post(f"{BASE_URL}/{received_order.id}/cancel")
+        resp = self.app.put(f"{BASE_URL}/{received_order.id}/cancel")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         # try get the order back and check for status
         resp = self.app.get(f"{BASE_URL}/{received_order.id}")
