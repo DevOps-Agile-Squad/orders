@@ -139,19 +139,30 @@ class OrderResource(Resource):
         return order.serialize(), status.HTTP_200_OK
 
     #------------------------------------------------------------------
-    # UPDATE A EXISTING ORDER
+    # UPDATE AN EXISTING ORDER
     #------------------------------------------------------------------
-    # @api.doc('update_orders')
-    # @api.response(404, 'Order not found')
-    # @api.response(400, 'The posted Order data was not valid')
-    # @api.expect(order_model)
-    # @api.marshal_with(order_model)
-    # def put(self, order_id):
-    #     """
-    #     Update a Order 
-    #     This endpoint will update a Order based the body that is posted
-    #     """
-    #     pass
+    @api.doc('update_orders')
+    @api.response(404, 'Order not found')
+    @api.response(400, 'The posted Order data was not valid')
+    @api.expect(order_model)
+    @api.marshal_with(order_model)
+    def put(self, order_id):
+        """
+        Update an Order
+
+        This endpoint will update an Order based the body that is posted
+        """
+        app.logger.info("Request to Update an order with id [%s]", order_id)
+        order = CustomerOrder.find(order_id)
+        if not order:
+            abort(status.HTTP_404_NOT_FOUND, "Order with id '{}' was not found.".format(order_id))
+        app.logger.debug('Payload = %s', api.payload)
+        data = api.payload
+        order.deserialize(data)
+        order.id = order_id
+        order.update()
+        app.logger.info("Order with ID [%s] updated.", order.id)
+        return order.serialize(), status.HTTP_200_OK
 
     #------------------------------------------------------------------
     # DELETE A ORDER
@@ -247,7 +258,7 @@ class CancelResource(Resource):
         return order.serialize(), status.HTTP_200_OK
 
 ######################################################################
-# ALL TRADITIONAL ROUTES (NOT YET REFACTORED) ARE BELOW 
+# ALL TRADITIONAL ROUTES (NOT YET REFACTORED) ARE BELOW
 ######################################################################
 
 ######################################################################
@@ -310,30 +321,6 @@ def add_item(order_id):
     message = item.serialize()
     location_url = url_for("get_item", order_id=order_id, item_id=message['item_id'], _external=True)
     return make_response(jsonify(message), status.HTTP_201_CREATED, {"Location": location_url})
-
-
-######################################################################
-# UPDATE AN EXISTING ORDER
-######################################################################
-@app.route("/orders/<int:order_id>", methods=["PUT"])
-def update_orders(order_id):
-    """
-    Update a CustomerOrder
-
-    This endpoint will update a CustomerOrder based the body that is posted
-    """
-    app.logger.info("Request to update order with id: %s", order_id)
-    check_content_type("application/json")
-    order = CustomerOrder.find(order_id)
-    if not order:
-        raise NotFound("Order with id '{}' was not found.".format(order_id))
-    order.deserialize(request.get_json())
-    order.id = order_id
-    app.logger.info(f"Order id is {order.id}")
-    order.update()
-
-    app.logger.info("Order with ID [%s] updated.", order.id)
-    return make_response(jsonify(order.serialize()), status.HTTP_200_OK)
 
 
 ######################################################################
