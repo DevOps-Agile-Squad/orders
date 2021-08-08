@@ -197,9 +197,7 @@ class OrderCollection(Resource):
         """Returns all of the orders"""
         app.logger.info("Request for order list")
         orders = []
-        app.logger.info("Before parse_args()")
         args = order_args.parse_args()
-        app.logger.info("After parse_args()")
         if args['customer_id']:
             app.logger.info('Filtering by customer id: %s', args['customer_id'])
             orders = CustomerOrder.find_by_customer_id(args['customer_id'])
