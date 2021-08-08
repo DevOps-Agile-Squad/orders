@@ -63,7 +63,6 @@ api = Api(app,
           doc='/apidocs', # default also could use doc='/apidocs/'
          )
 
-
 # Define the model so that the docs reflect what can be sent
 create_model = api.model('Order', {
     'customer_id': fields.Integer(required=True,
