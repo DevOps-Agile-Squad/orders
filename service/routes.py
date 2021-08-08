@@ -86,8 +86,8 @@ order_model = api.inherit(
 
 # query string arguments (used as filters in List function)
 order_args = reqparse.RequestParser()
-order_args.add_argument('customer_id', type=int, required=False, help='List Orders by customer_id')
-order_args.add_argument('item', type=str, required=False, help='List Orders by item')
+order_args.add_argument('customer_id', type=int, location='form', required=False, help='List Orders by customer_id')
+order_args.add_argument('item', type=str, location='form', required=False, help='List Orders by item')
 
 ######################################################################
 # Special Error Handlers
