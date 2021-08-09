@@ -63,7 +63,7 @@ api = Api(app,
           doc='/apidocs', # default also could use doc='/apidocs/'
          )
 
-# Define the model so that the docs reflect what can be sent
+# Define the Order model so that the docs reflect what can be sent
 create_model = api.model('Order', {
     'customer_id': fields.Integer(required=True,
                           description='The customer id the order is associated with'),
@@ -81,6 +81,27 @@ order_model = api.inherit(
                             description='The unique id assigned internally by service'),
         'items': fields.List(cls_or_instance=fields.Raw,
                                 description='collection of all items assigned to an order')
+    }
+)
+
+# Define the Item model so that the docs reflect what can be sent
+create_item_model = api.model('Item', {
+    'order_id': fields.Integer(required=True,
+                          description='The order id the item is associated with'),
+    'quantity': fields.Integer(required=True,
+                              description='The quantity of the item'),
+    'price': fields.Integer(required=True,
+                              description='The price of the item'),
+    'item_name': fields.String(required=True,
+                                description='The name of the item')
+})
+
+item_model = api.inherit(
+    'ItemModel', 
+    create_item_model,
+    {
+        'id': fields.String(readOnly=True,
+                            description='The unique id assigned internally by service'),
     }
 )
 
@@ -270,6 +291,31 @@ class CancelResource(Resource):
         app.logger.info("Notify Billing to refund payment...")
         app.logger.info(f"Order with id {order_id} cancelled successfully.")
         return order.serialize(), status.HTTP_200_OK
+
+######################################################################
+#  PATH: /orders/{order_id}/items/{item_id}
+######################################################################
+@api.route('/orders/<order_id>/items/<item_id>')
+@api.param('item_id', 'The Item identifier')
+class ItemResource(Resource):
+#     """
+#     ItemResource class
+#     Allows the manipulation of a single Item
+#     GET /item{id} - Returns a Item with the id
+#     """
+    #------------------------------------------------------------------
+    # RETRIEVE A ITEM
+    #------------------------------------------------------------------
+    @api.doc('get_items')
+    @api.response(404, 'Order not found')
+    @api.marshal_with(item_model)
+    def get(self, item_id):
+        """
+        Retrieve a single Order
+        This endpoint will return an Order based on it's id
+        """
+        pass
+
 
 ######################################################################
 # ALL TRADITIONAL ROUTES (NOT YET REFACTORED) ARE BELOW
