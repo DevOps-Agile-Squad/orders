@@ -297,6 +297,7 @@ class CancelResource(Resource):
 ######################################################################
 @api.route('/orders/<order_id>/items/<item_id>')
 @api.param('item_id', 'The Item identifier')
+@api.param('order_id', 'The Order identifier')
 class ItemResource(Resource):
 #     """
 #     ItemResource class
@@ -309,12 +310,22 @@ class ItemResource(Resource):
     @api.doc('get_items')
     @api.response(404, 'Order not found')
     @api.marshal_with(item_model)
-    def get(self, item_id):
+    def get(self, item_id, order_id):
         """
-        Retrieve a single Order
-        This endpoint will return an Order based on it's id
+        Retrieve a single item in an order
+        This endpoint will return an item based on its id and its order's id
         """
-        pass
+        app.logger.info(f"Request for item with id {item_id} in order {order_id}")
+        order = CustomerOrder.find(order_id)
+        if not order: 
+            raise NotFound(f"Order with id {order_id} was not found")
+    
+        item = Item.find(item_id)
+        if not item: 
+            raise NotFound(f"Item with id {item_id} was not found in order {order_id}")
+    
+        app.logger.info(f"Returning item: {item_id}")
+        return item.serialize(), status.HTTP_200_OK
 
 
 ######################################################################
