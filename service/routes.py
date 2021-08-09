@@ -318,11 +318,11 @@ class ItemResource(Resource):
         app.logger.info(f"Request for item with id {item_id} in order {order_id}")
         order = CustomerOrder.find(order_id)
         if not order: 
-            raise NotFound(f"Order with id {order_id} was not found")
+            abort(status.HTTP_404_NOT_FOUND, "Request for item with id {item_id} in order {order_id}")
     
         item = Item.find(item_id)
         if not item: 
-            raise NotFound(f"Item with id {item_id} was not found in order {order_id}")
+            abort(status.HTTP_404_NOT_FOUND, "Item with id {item_id} was not found in order {order_id}")
     
         app.logger.info(f"Returning item: {item_id}")
         return item.serialize(), status.HTTP_200_OK
@@ -331,28 +331,6 @@ class ItemResource(Resource):
 ######################################################################
 # ALL TRADITIONAL ROUTES (NOT YET REFACTORED) ARE BELOW
 ######################################################################
-
-
-######################################################################
-# GET AN ITEM BY ORDER ID AND ITEM ID
-######################################################################
-@app.route("/orders/<int:order_id>/items/<int:item_id>", methods=["GET"])
-def get_item(order_id, item_id):
-    """
-    Retrieve a single item in an order
-    This endpoint will return an item based on its id and its order's id
-    """
-    app.logger.info(f"Request for item with id {item_id} in order {order_id}")
-    order = CustomerOrder.find(order_id)
-    if not order: 
-        raise NotFound(f"Order with id {order_id} was not found")
-    
-    item = Item.find(item_id)
-    if not item: 
-        raise NotFound(f"Item with id {item_id} was not found in order {order_id}")
-    
-    app.logger.info(f"Returning item: {item_id}")
-    return make_response(jsonify(item.serialize()), status.HTTP_200_OK)
 
 
 ######################################################################
