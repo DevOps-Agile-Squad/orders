@@ -85,9 +85,9 @@ order_model = api.inherit(
 )
 
 # query string arguments (used as filters in List function)
-# order_args = reqparse.RequestParser()
-# order_args.add_argument('customer_id', type=int, required=False, help='List Orders by customer_id')
-# order_args.add_argument('item', type=str, required=False, help='List Orders by item')
+order_args = reqparse.RequestParser()
+order_args.add_argument('customer_id', type=int, location=['args', 'form'], required=False, help='List Orders by customer_id')
+order_args.add_argument('item', type=str, location=['args', 'form'], required=False, help='List Orders by item')
 
 ######################################################################
 # Special Error Handlers
@@ -187,15 +187,30 @@ class OrderResource(Resource):
 @api.route('/orders', strict_slashes=False)
 class OrderCollection(Resource):
     """ Handles all interactions with collections of Orders """
-#     #------------------------------------------------------------------
-#     # LIST ALL Orders
-#     #------------------------------------------------------------------
-#     @api.doc('list_orders')
-#     @api.expect(order_args, validate=True)
-#     @api.marshal_list_with(order_model)
-#     def get(self):
-#         """ Returns all of the Orders """
-#         pass
+    #------------------------------------------------------------------
+    # LIST ALL Orders
+    #------------------------------------------------------------------
+    @api.doc('list_orders')
+    @api.expect(order_args, validate=True)
+    @api.marshal_list_with(order_model)
+    def get(self):
+        """Returns all of the orders"""
+        app.logger.info("Request for order list")
+        orders = []
+        args = order_args.parse_args()
+        if args['customer_id']:
+            app.logger.info('Filtering by customer id: %s', args['customer_id'])
+            orders = CustomerOrder.find_by_customer_id(args['customer_id'])
+        elif args['item']:
+            app.logger.info('Filtering by item: %s', args['item'])
+            orders = CustomerOrder.find_by_including_item(args['item'])
+        else:
+            app.logger.info('Returning unfiltered list.')
+            orders = CustomerOrder.all()
+
+        results = [order.serialize() for order in orders]
+        app.logger.info("Returning %d orders", len(results))
+        return results, status.HTTP_200_OK
 
 
     #------------------------------------------------------------------
@@ -259,27 +274,6 @@ class CancelResource(Resource):
 ######################################################################
 # ALL TRADITIONAL ROUTES (NOT YET REFACTORED) ARE BELOW
 ######################################################################
-
-######################################################################
-# LIST ALL CUSTOMER ORDERS
-######################################################################
-@app.route("/orders", methods=["GET"])
-def list_orders():
-    """Returns all of the orders"""
-    app.logger.info("Request for order list")
-    orders = []
-    customer_id = request.args.get("customer_id")
-    item = request.args.get("item")
-    if customer_id:
-        orders = CustomerOrder.find_by_customer_id(customer_id)
-    elif item:
-        orders = CustomerOrder.find_by_including_item(item)
-    else:
-        orders = CustomerOrder.all()
-
-    results = [order.serialize() for order in orders]
-    app.logger.info("Returning %d orders", len(results))
-    return make_response(jsonify(results), status.HTTP_200_OK)
 
 
 ######################################################################
