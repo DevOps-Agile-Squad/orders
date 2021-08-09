@@ -318,11 +318,11 @@ class ItemResource(Resource):
         app.logger.info(f"Request for item with id {item_id} in order {order_id}")
         order = CustomerOrder.find(order_id)
         if not order: 
-            abort(status.HTTP_404_NOT_FOUND, "Request for item with id {item_id} in order {order_id}")
+            abort(status.HTTP_404_NOT_FOUND, f"Request for item with id {item_id} in order {order_id}")
     
         item = Item.find(item_id)
         if not item: 
-            abort(status.HTTP_404_NOT_FOUND, "Item with id {item_id} was not found in order {order_id}")
+            abort(status.HTTP_404_NOT_FOUND, f"Item with id {item_id} was not found in order {order_id}")
     
         app.logger.info(f"Returning item: {item_id}")
         return item.serialize(), status.HTTP_200_OK
