@@ -90,7 +90,7 @@ create_item_model = api.model('Item', {
                           description='The order id the item is associated with'),
     'quantity': fields.Integer(required=True,
                               description='The quantity of the item'),
-    'price': fields.Integer(required=True,
+    'price': fields.Float(required=True,
                               description='The price of the item'),
     'item_name': fields.String(required=True,
                                 description='The name of the item')
@@ -128,7 +128,7 @@ order_args.add_argument('item', type=str, location='args', required=False, help=
 ######################################################################
 #  PATH: /orders/{id}
 ######################################################################
-@api.route('/orders/<order_id>')
+@api.route('/orders/<int:order_id>')
 @api.param('order_id', 'The Order identifier')
 class OrderResource(Resource):
 #     """
@@ -261,7 +261,7 @@ class OrderCollection(Resource):
 ######################################################################
 #  PATH: /orders/{id}/cancel
 ######################################################################
-@api.route('/orders/<order_id>/cancel')
+@api.route('/orders/<int:order_id>/cancel')
 @api.param('order_id', 'The Order identifier')
 class CancelResource(Resource):
     """ Cancel actions on a Order """
@@ -295,7 +295,7 @@ class CancelResource(Resource):
 ######################################################################
 #  PATH: /orders/{order_id}/items/{item_id}
 ######################################################################
-@api.route('/orders/<order_id>/items/<item_id>')
+@api.route('/orders/<int:order_id>/items/<int:item_id>')
 @api.param('item_id', 'The Item identifier')
 @api.param('order_id', 'The Order identifier')
 class ItemResource(Resource):
@@ -354,7 +354,7 @@ class ItemResource(Resource):
 ######################################################################
 #  PATH: /orders/{order_id}/items
 ######################################################################
-@api.route('/orders/<order_id>/items', strict_slashes=False)
+@api.route('/orders/<int:order_id>/items', strict_slashes=False)
 @api.param('order_id', 'The Order identifier')
 class ItemCollection(Resource):
     """ Handles all interactions with collections of Items """
