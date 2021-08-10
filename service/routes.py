@@ -164,7 +164,7 @@ class OrderResource(Resource):
     @api.doc('update_orders')
     @api.response(404, 'Order not found')
     @api.response(400, 'The posted Order data was not valid')
-    @api.expect(order_model)
+    @api.expect(order_model, validate=True)
     @api.marshal_with(order_model)
     def put(self, order_id):
         """
@@ -362,7 +362,7 @@ class ItemCollection(Resource):
     # ADD A NEW ITEM
     #------------------------------------------------------------------
     @api.doc('create_item')
-    @api.expect(create_item_model)
+    @api.expect(create_item_model, validate=True)
     @api.response(400, 'The posted data was not valid')
     @api.response(201, 'Item created successfully')
     @api.marshal_with(item_model, code=201)
