@@ -329,26 +329,39 @@ class ItemResource(Resource):
 
 
 ######################################################################
+#  PATH: /orders/{order_id}/items
+######################################################################
+@api.route('/orders/<order_id>/items', strict_slashes=False)
+@api.param('order_id', 'The Order identifier')
+class ItemCollection(Resource):
+    """ Handles all interactions with collections of Items """
+    #------------------------------------------------------------------
+    # ADD A NEW ITEM
+    #------------------------------------------------------------------
+    @api.doc('create_item')
+    @api.expect(create_item_model)
+    @api.response(400, 'The posted data was not valid')
+    @api.response(201, 'Pet created successfully')
+    @api.marshal_with(item_model, code=201)
+    def post(self, order_id):
+        """Adds item to an order."""
+        app.logger.info("Request to add an item to an order")
+        check_content_type("application/json")
+        customer_order = CustomerOrder.find_or_404(order_id)
+        item = Item()
+        item.deserialize(api.payload)
+        customer_order.items.append(item)
+        customer_order.save()
+        message = item.serialize()
+        location_url = api.url_for(ItemResource, order_id=order_id, item_id=message['item_id'], _external=True)
+
+        app.logger.info(f"Item with ID {message['item_id']} is created")
+        return message, status.HTTP_201_CREATED, {"Location": location_url}
+
+
+######################################################################
 # ALL TRADITIONAL ROUTES (NOT YET REFACTORED) ARE BELOW
 ######################################################################
-
-
-######################################################################
-# ADD ITEM TO A CUSTOMER ORDER
-######################################################################
-@app.route("/orders/<int:order_id>/items", methods=["POST"])
-def add_item(order_id):
-    """Adds item to an order."""
-    app.logger.info("Request to add an item to an order")
-    check_content_type("application/json")
-    customer_order = CustomerOrder.find_or_404(order_id)
-    item = Item()
-    item.deserialize(request.get_json())
-    customer_order.items.append(item)
-    customer_order.save()
-    message = item.serialize()
-    location_url = url_for("get_item", order_id=order_id, item_id=message['item_id'], _external=True)
-    return make_response(jsonify(message), status.HTTP_201_CREATED, {"Location": location_url})
 
 
 ######################################################################
