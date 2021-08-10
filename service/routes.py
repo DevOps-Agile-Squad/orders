@@ -381,36 +381,6 @@ class ItemCollection(Resource):
         app.logger.info(f"Item with ID {message['item_id']} is created")
         return message, status.HTTP_201_CREATED, {"Location": location_url}
 
-
-######################################################################
-# ALL TRADITIONAL ROUTES (NOT YET REFACTORED) ARE BELOW
-######################################################################
-
-
-######################################################################
-# DELETE AN ITEM
-######################################################################
-#@app.route("/orders/<int:order_id>/items/<int:item_id>", methods=["DELETE"])
-#def delete_items(order_id, item_id):
-    """
-    Delete an item
-
-    This endpoint will delete an item based on id specified in the path
-    """
-#    app.logger.info(f"Request to delete item with id {item_id}")
-#    order = CustomerOrder.find(order_id)
-#    if order is None:
-#        return make_response(f"Order with id {order_id} is not found", status.HTTP_404_NOT_FOUND)
-#    item = Item.find(item_id)
-#
-#    if item is not None:
-#        if item.order_id != order_id:
-#            return make_response(f"Item with id {item.order_id} is not in order with id {order_id}",
-#                                 status.HTTP_404_NOT_FOUND)
-#        item.delete()
-#    app.logger.info(f"item with id {item_id} delete complete")
-#    return make_response("", status.HTTP_204_NO_CONTENT)
-
 ######################################################################
 #  U T I L I T Y   F U N C T I O N S
 ######################################################################
