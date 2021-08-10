@@ -100,7 +100,7 @@ item_model = api.inherit(
     'ItemModel', 
     create_item_model,
     {
-        'item_id': fields.String(readOnly=True,
+        'item_id': fields.Integer(readOnly=True,
                             description='The unique id assigned internally by service'),
     }
 )
@@ -327,6 +327,29 @@ class ItemResource(Resource):
         app.logger.info(f"Returning item: {item_id}")
         return item.serialize(), status.HTTP_200_OK
 
+    #------------------------------------------------------------------
+    # DELETE A ITEM
+    #------------------------------------------------------------------
+    @api.doc('delete_items')
+    @api.response(204, 'Item deleted')
+    @api.response(404, 'Item not found')
+    def delete(self, item_id, order_id):
+        """
+        Delete a Item
+        This endpoint will delete a Item based the id specified in the path
+        """
+        app.logger.info(f"Request to delete item with id {item_id}")
+        order = CustomerOrder.find(order_id)
+        if not order:
+            abort(status.HTTP_404_NOT_FOUND, f"Order with id {order_id} is not found")
+        item = Item.find(item_id)
+
+        if item:
+            if int(item.order_id) != int(order_id):
+                abort(status.HTTP_404_NOT_FOUND, f"Item with id {item.order_id} is not in order with id {order_id}")
+            item.delete()
+        app.logger.info(f"item with id {item_id} delete complete")
+        return '', status.HTTP_204_NO_CONTENT
 
 ######################################################################
 #  PATH: /orders/{order_id}/items
@@ -341,7 +364,7 @@ class ItemCollection(Resource):
     @api.doc('create_item')
     @api.expect(create_item_model)
     @api.response(400, 'The posted data was not valid')
-    @api.response(201, 'Pet created successfully')
+    @api.response(201, 'Item created successfully')
     @api.marshal_with(item_model, code=201)
     def post(self, order_id):
         """Adds item to an order."""
@@ -357,36 +380,6 @@ class ItemCollection(Resource):
 
         app.logger.info(f"Item with ID {message['item_id']} is created")
         return message, status.HTTP_201_CREATED, {"Location": location_url}
-
-
-######################################################################
-# ALL TRADITIONAL ROUTES (NOT YET REFACTORED) ARE BELOW
-######################################################################
-
-
-######################################################################
-# DELETE AN ITEM
-######################################################################
-@app.route("/orders/<int:order_id>/items/<int:item_id>", methods=["DELETE"])
-def delete_items(order_id, item_id):
-    """
-    Delete an item
-
-    This endpoint will delete an item based on id specified in the path
-    """
-    app.logger.info(f"Request to delete item with id {item_id}")
-    order = CustomerOrder.find(order_id)
-    if order is None:
-        return make_response(f"Order with id {order_id} is not found", status.HTTP_404_NOT_FOUND)
-    item = Item.find(item_id)
-
-    if item is not None:
-        if item.order_id != order_id:
-            return make_response(f"Item with id {item.order_id} is not in order with id {order_id}",
-                                 status.HTTP_404_NOT_FOUND)
-        item.delete()
-    app.logger.info(f"item with id {item_id} delete complete")
-    return make_response("", status.HTTP_204_NO_CONTENT)
 
 ######################################################################
 #  U T I L I T Y   F U N C T I O N S
