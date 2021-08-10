@@ -327,6 +327,30 @@ class ItemResource(Resource):
         app.logger.info(f"Returning item: {item_id}")
         return item.serialize(), status.HTTP_200_OK
 
+    #------------------------------------------------------------------
+    # DELETE A ITEM
+    #------------------------------------------------------------------
+    @api.doc('delete_items')
+    @api.response(204, 'Item deleted')
+    @api.response(404, 'Item not found')
+    def delete(self, order_id, item_id):
+        """
+        Delete a Item
+        This endpoint will delete a Item based the id specified in the path
+        """
+        app.logger.info(f"Request to delete item with id {item_id}")
+        order = CustomerOrder.find(order_id)
+        if order is None:
+            abort(status.HTTP_404_NOT_FOUND, f"Order with id {order_id} is not found")
+        item = Item.find(item_id)
+
+        if item is not None:
+            if item.order_id != order_id:
+                abort(status.HTTP_404_NOT_FOUND, 
+                    f"Item with id {item.order_id} is not in order with id {order_id}")
+            item.delete()
+        app.logger.info(f"item with id {item_id} delete complete")
+        return "", status.HTTP_204_NO_CONTENT
 
 ######################################################################
 #  PATH: /orders/{order_id}/items
@@ -367,26 +391,26 @@ class ItemCollection(Resource):
 ######################################################################
 # DELETE AN ITEM
 ######################################################################
-@app.route("/orders/<int:order_id>/items/<int:item_id>", methods=["DELETE"])
-def delete_items(order_id, item_id):
+#@app.route("/orders/<int:order_id>/items/<int:item_id>", methods=["DELETE"])
+#def delete_items(order_id, item_id):
     """
     Delete an item
 
     This endpoint will delete an item based on id specified in the path
     """
-    app.logger.info(f"Request to delete item with id {item_id}")
-    order = CustomerOrder.find(order_id)
-    if order is None:
-        return make_response(f"Order with id {order_id} is not found", status.HTTP_404_NOT_FOUND)
-    item = Item.find(item_id)
-
-    if item is not None:
-        if item.order_id != order_id:
-            return make_response(f"Item with id {item.order_id} is not in order with id {order_id}",
-                                 status.HTTP_404_NOT_FOUND)
-        item.delete()
-    app.logger.info(f"item with id {item_id} delete complete")
-    return make_response("", status.HTTP_204_NO_CONTENT)
+#    app.logger.info(f"Request to delete item with id {item_id}")
+#    order = CustomerOrder.find(order_id)
+#    if order is None:
+#        return make_response(f"Order with id {order_id} is not found", status.HTTP_404_NOT_FOUND)
+#    item = Item.find(item_id)
+#
+#    if item is not None:
+#        if item.order_id != order_id:
+#            return make_response(f"Item with id {item.order_id} is not in order with id {order_id}",
+#                                 status.HTTP_404_NOT_FOUND)
+#        item.delete()
+#    app.logger.info(f"item with id {item_id} delete complete")
+#    return make_response("", status.HTTP_204_NO_CONTENT)
 
 ######################################################################
 #  U T I L I T Y   F U N C T I O N S
