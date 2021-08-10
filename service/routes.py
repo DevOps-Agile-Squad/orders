@@ -100,7 +100,7 @@ item_model = api.inherit(
     'ItemModel', 
     create_item_model,
     {
-        'id': fields.String(readOnly=True,
+        'item_id': fields.String(readOnly=True,
                             description='The unique id assigned internally by service'),
     }
 )
@@ -297,6 +297,7 @@ class CancelResource(Resource):
 ######################################################################
 @api.route('/orders/<order_id>/items/<item_id>')
 @api.param('item_id', 'The Item identifier')
+@api.param('order_id', 'The Order identifier')
 class ItemResource(Resource):
 #     """
 #     ItemResource class
@@ -309,57 +310,58 @@ class ItemResource(Resource):
     @api.doc('get_items')
     @api.response(404, 'Order not found')
     @api.marshal_with(item_model)
-    def get(self, item_id):
+    def get(self, item_id, order_id):
         """
-        Retrieve a single Order
-        This endpoint will return an Order based on it's id
+        Retrieve a single item in an order
+        This endpoint will return an item based on its id and its order's id
         """
-        pass
+        app.logger.info(f"Request for item with id {item_id} in order {order_id}")
+        order = CustomerOrder.find(order_id)
+        if not order: 
+            abort(status.HTTP_404_NOT_FOUND, f"Order with id {order_id} was not found")
+    
+        item = Item.find(item_id)
+        if not item: 
+            abort(status.HTTP_404_NOT_FOUND, f"Item with id {item_id} was not found in order {order_id}")
+    
+        app.logger.info(f"Returning item: {item_id}")
+        return item.serialize(), status.HTTP_200_OK
+
+
+######################################################################
+#  PATH: /orders/{order_id}/items
+######################################################################
+@api.route('/orders/<order_id>/items', strict_slashes=False)
+@api.param('order_id', 'The Order identifier')
+class ItemCollection(Resource):
+    """ Handles all interactions with collections of Items """
+    #------------------------------------------------------------------
+    # ADD A NEW ITEM
+    #------------------------------------------------------------------
+    @api.doc('create_item')
+    @api.expect(create_item_model)
+    @api.response(400, 'The posted data was not valid')
+    @api.response(201, 'Pet created successfully')
+    @api.marshal_with(item_model, code=201)
+    def post(self, order_id):
+        """Adds item to an order."""
+        app.logger.info("Request to add an item to an order")
+        check_content_type("application/json")
+        customer_order = CustomerOrder.find_or_404(order_id)
+        item = Item()
+        item.deserialize(api.payload)
+        customer_order.items.append(item)
+        customer_order.save()
+        message = item.serialize()
+        location_url = api.url_for(ItemResource, order_id=order_id, item_id=message['item_id'], _external=True)
+
+        app.logger.info(f"Item with ID {message['item_id']} is created")
+        return message, status.HTTP_201_CREATED, {"Location": location_url}
 
 
 ######################################################################
 # ALL TRADITIONAL ROUTES (NOT YET REFACTORED) ARE BELOW
 ######################################################################
-
-
-######################################################################
-# GET AN ITEM BY ORDER ID AND ITEM ID
-######################################################################
-@app.route("/orders/<int:order_id>/items/<int:item_id>", methods=["GET"])
-def get_item(order_id, item_id):
-    """
-    Retrieve a single item in an order
-    This endpoint will return an item based on its id and its order's id
-    """
-    app.logger.info(f"Request for item with id {item_id} in order {order_id}")
-    order = CustomerOrder.find(order_id)
-    if not order: 
-        raise NotFound(f"Order with id {order_id} was not found")
-    
-    item = Item.find(item_id)
-    if not item: 
-        raise NotFound(f"Item with id {item_id} was not found in order {order_id}")
-    
-    app.logger.info(f"Returning item: {item_id}")
-    return make_response(jsonify(item.serialize()), status.HTTP_200_OK)
-
-
-######################################################################
-# ADD ITEM TO A CUSTOMER ORDER
-######################################################################
-@app.route("/orders/<int:order_id>/items", methods=["POST"])
-def add_item(order_id):
-    """Adds item to an order."""
-    app.logger.info("Request to add an item to an order")
-    check_content_type("application/json")
-    customer_order = CustomerOrder.find_or_404(order_id)
-    item = Item()
-    item.deserialize(request.get_json())
-    customer_order.items.append(item)
-    customer_order.save()
-    message = item.serialize()
-    location_url = url_for("get_item", order_id=order_id, item_id=message['item_id'], _external=True)
-    return make_response(jsonify(message), status.HTTP_201_CREATED, {"Location": location_url})
 
 
 ######################################################################
