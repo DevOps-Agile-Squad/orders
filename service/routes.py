@@ -100,7 +100,7 @@ item_model = api.inherit(
     'ItemModel', 
     create_item_model,
     {
-        'id': fields.String(readOnly=True,
+        'item_id': fields.String(readOnly=True,
                             description='The unique id assigned internally by service'),
     }
 )
