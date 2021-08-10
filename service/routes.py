@@ -318,7 +318,7 @@ class ItemResource(Resource):
         app.logger.info(f"Request for item with id {item_id} in order {order_id}")
         order = CustomerOrder.find(order_id)
         if not order: 
-            abort(status.HTTP_404_NOT_FOUND, f"Request for item with id {item_id} in order {order_id}")
+            abort(status.HTTP_404_NOT_FOUND, f"Order with id {order_id} was not found")
     
         item = Item.find(item_id)
         if not item: 
