@@ -63,8 +63,7 @@ api = Api(app,
           doc='/apidocs', # default also could use doc='/apidocs/'
          )
 
-
-# Define the model so that the docs reflect what can be sent
+# Define the Order model so that the docs reflect what can be sent
 create_model = api.model('Order', {
     'customer_id': fields.Integer(required=True,
                           description='The customer id the order is associated with'),
@@ -85,10 +84,31 @@ order_model = api.inherit(
     }
 )
 
+# Define the Item model so that the docs reflect what can be sent
+create_item_model = api.model('Item', {
+    'order_id': fields.Integer(required=True,
+                          description='The order id the item is associated with'),
+    'quantity': fields.Integer(required=True,
+                              description='The quantity of the item'),
+    'price': fields.Integer(required=True,
+                              description='The price of the item'),
+    'item_name': fields.String(required=True,
+                                description='The name of the item')
+})
+
+item_model = api.inherit(
+    'ItemModel', 
+    create_item_model,
+    {
+        'item_id': fields.Integer(readOnly=True,
+                            description='The unique id assigned internally by service'),
+    }
+)
+
 # query string arguments (used as filters in List function)
-# order_args = reqparse.RequestParser()
-# order_args.add_argument('customer_id', type=int, required=False, help='List Orders by customer_id')
-# order_args.add_argument('item', type=str, required=False, help='List Orders by item')
+order_args = reqparse.RequestParser()
+order_args.add_argument('customer_id', type=int, location='args', required=False, help='List Orders by customer_id')
+order_args.add_argument('item', type=str, location='args', required=False, help='List Orders by item')
 
 ######################################################################
 # Special Error Handlers
@@ -188,15 +208,30 @@ class OrderResource(Resource):
 @api.route('/orders', strict_slashes=False)
 class OrderCollection(Resource):
     """ Handles all interactions with collections of Orders """
-#     #------------------------------------------------------------------
-#     # LIST ALL Orders
-#     #------------------------------------------------------------------
-#     @api.doc('list_orders')
-#     @api.expect(order_args, validate=True)
-#     @api.marshal_list_with(order_model)
-#     def get(self):
-#         """ Returns all of the Orders """
-#         pass
+    #------------------------------------------------------------------
+    # LIST ALL Orders
+    #------------------------------------------------------------------
+    @api.doc('list_orders')
+    @api.expect(order_args, validate=True)
+    @api.marshal_list_with(order_model)
+    def get(self):
+        """Returns all of the orders"""
+        app.logger.info("Request for order list")
+        orders = []
+        args = order_args.parse_args()
+        if args['customer_id']:
+            app.logger.info('Filtering by customer id: %s', args['customer_id'])
+            orders = CustomerOrder.find_by_customer_id(args['customer_id'])
+        elif args['item']:
+            app.logger.info('Filtering by item: %s', args['item'])
+            orders = CustomerOrder.find_by_including_item(args['item'])
+        else:
+            app.logger.info('Returning unfiltered list.')
+            orders = CustomerOrder.all()
+
+        results = [order.serialize() for order in orders]
+        app.logger.info("Returning %d orders", len(results))
+        return results, status.HTTP_200_OK
 
 
     #------------------------------------------------------------------
@@ -258,94 +293,93 @@ class CancelResource(Resource):
         return order.serialize(), status.HTTP_200_OK
 
 ######################################################################
-# ALL TRADITIONAL ROUTES (NOT YET REFACTORED) ARE BELOW
+#  PATH: /orders/{order_id}/items/{item_id}
 ######################################################################
-
-######################################################################
-# LIST ALL CUSTOMER ORDERS
-######################################################################
-@app.route("/orders", methods=["GET"])
-def list_orders():
-    """Returns all of the orders"""
-    app.logger.info("Request for order list")
-    orders = []
-    customer_id = request.args.get("customer_id")
-    item = request.args.get("item")
-    if customer_id:
-        orders = CustomerOrder.find_by_customer_id(customer_id)
-    elif item:
-        orders = CustomerOrder.find_by_including_item(item)
-    else:
-        orders = CustomerOrder.all()
-
-    results = [order.serialize() for order in orders]
-    app.logger.info("Returning %d orders", len(results))
-    return make_response(jsonify(results), status.HTTP_200_OK)
-
-
-######################################################################
-# GET AN ITEM BY ORDER ID AND ITEM ID
-######################################################################
-@app.route("/orders/<int:order_id>/items/<int:item_id>", methods=["GET"])
-def get_item(order_id, item_id):
-    """
-    Retrieve a single item in an order
-    This endpoint will return an item based on its id and its order's id
-    """
-    app.logger.info(f"Request for item with id {item_id} in order {order_id}")
-    order = CustomerOrder.find(order_id)
-    if not order: 
-        raise NotFound(f"Order with id {order_id} was not found")
+@api.route('/orders/<order_id>/items/<item_id>')
+@api.param('item_id', 'The Item identifier')
+@api.param('order_id', 'The Order identifier')
+class ItemResource(Resource):
+#     """
+#     ItemResource class
+#     Allows the manipulation of a single Item
+#     GET /item{id} - Returns a Item with the id
+#     """
+    #------------------------------------------------------------------
+    # RETRIEVE A ITEM
+    #------------------------------------------------------------------
+    @api.doc('get_items')
+    @api.response(404, 'Order not found')
+    @api.marshal_with(item_model)
+    def get(self, item_id, order_id):
+        """
+        Retrieve a single item in an order
+        This endpoint will return an item based on its id and its order's id
+        """
+        app.logger.info(f"Request for item with id {item_id} in order {order_id}")
+        order = CustomerOrder.find(order_id)
+        if not order: 
+            abort(status.HTTP_404_NOT_FOUND, f"Order with id {order_id} was not found")
     
-    item = Item.find(item_id)
-    if not item: 
-        raise NotFound(f"Item with id {item_id} was not found in order {order_id}")
+        item = Item.find(item_id)
+        if not item: 
+            abort(status.HTTP_404_NOT_FOUND, f"Item with id {item_id} was not found in order {order_id}")
     
-    app.logger.info(f"Returning item: {item_id}")
-    return make_response(jsonify(item.serialize()), status.HTTP_200_OK)
+        app.logger.info(f"Returning item: {item_id}")
+        return item.serialize(), status.HTTP_200_OK
 
+    #------------------------------------------------------------------
+    # DELETE A ITEM
+    #------------------------------------------------------------------
+    @api.doc('delete_items')
+    @api.response(204, 'Item deleted')
+    @api.response(404, 'Item not found')
+    def delete(self, item_id, order_id):
+        """
+        Delete a Item
+        This endpoint will delete a Item based the id specified in the path
+        """
+        app.logger.info(f"Request to delete item with id {item_id}")
+        order = CustomerOrder.find(order_id)
+        if not order:
+            abort(status.HTTP_404_NOT_FOUND, f"Order with id {order_id} is not found")
+        item = Item.find(item_id)
+
+        if item:
+            if int(item.order_id) != int(order_id):
+                abort(status.HTTP_404_NOT_FOUND, f"Item with id {item.order_id} is not in order with id {order_id}")
+            item.delete()
+        app.logger.info(f"item with id {item_id} delete complete")
+        return '', status.HTTP_204_NO_CONTENT
 
 ######################################################################
-# ADD ITEM TO A CUSTOMER ORDER
+#  PATH: /orders/{order_id}/items
 ######################################################################
-@app.route("/orders/<int:order_id>/items", methods=["POST"])
-def add_item(order_id):
-    """Adds item to an order."""
-    app.logger.info("Request to add an item to an order")
-    check_content_type("application/json")
-    customer_order = CustomerOrder.find_or_404(order_id)
-    item = Item()
-    item.deserialize(request.get_json())
-    customer_order.items.append(item)
-    customer_order.save()
-    message = item.serialize()
-    location_url = url_for("get_item", order_id=order_id, item_id=message['item_id'], _external=True)
-    return make_response(jsonify(message), status.HTTP_201_CREATED, {"Location": location_url})
+@api.route('/orders/<order_id>/items', strict_slashes=False)
+@api.param('order_id', 'The Order identifier')
+class ItemCollection(Resource):
+    """ Handles all interactions with collections of Items """
+    #------------------------------------------------------------------
+    # ADD A NEW ITEM
+    #------------------------------------------------------------------
+    @api.doc('create_item')
+    @api.expect(create_item_model)
+    @api.response(400, 'The posted data was not valid')
+    @api.response(201, 'Item created successfully')
+    @api.marshal_with(item_model, code=201)
+    def post(self, order_id):
+        """Adds item to an order."""
+        app.logger.info("Request to add an item to an order")
+        check_content_type("application/json")
+        customer_order = CustomerOrder.find_or_404(order_id)
+        item = Item()
+        item.deserialize(api.payload)
+        customer_order.items.append(item)
+        customer_order.save()
+        message = item.serialize()
+        location_url = api.url_for(ItemResource, order_id=order_id, item_id=message['item_id'], _external=True)
 
-
-######################################################################
-# DELETE AN ITEM
-######################################################################
-@app.route("/orders/<int:order_id>/items/<int:item_id>", methods=["DELETE"])
-def delete_items(order_id, item_id):
-    """
-    Delete an item
-
-    This endpoint will delete an item based on id specified in the path
-    """
-    app.logger.info(f"Request to delete item with id {item_id}")
-    order = CustomerOrder.find(order_id)
-    if order is None:
-        return make_response(f"Order with id {order_id} is not found", status.HTTP_404_NOT_FOUND)
-    item = Item.find(item_id)
-
-    if item is not None:
-        if item.order_id != order_id:
-            return make_response(f"Item with id {item.order_id} is not in order with id {order_id}",
-                                 status.HTTP_404_NOT_FOUND)
-        item.delete()
-    app.logger.info(f"item with id {item_id} delete complete")
-    return make_response("", status.HTTP_204_NO_CONTENT)
+        app.logger.info(f"Item with ID {message['item_id']} is created")
+        return message, status.HTTP_201_CREATED, {"Location": location_url}
 
 ######################################################################
 #  U T I L I T Y   F U N C T I O N S
