@@ -7,15 +7,24 @@ The orders resource is a collection of order items where each item represents a 
 
 Order API
 
-- /orders : This is the API to create an empty order. This will create an order for customer. The order has following fields:
-  customer_id, address_line1, address_line2, city, state, zip_code.
+- /orders : This is the API that handles orders. The order has the following fields:
 
-- /orders/{id}/items : This is the API to create an item inside an order. Items have following field:
-  quantity, price, item_name
+  id, customer_id, address, status, [items]
+
+- /orders/{id}/items : This is the API that handles items inside an order. Items have the following field:
+
+  item_id, order_id, quantity, price, item_name
+
+## IBM Cloud URL
+
+dev: https://nyu-order-service-sum21.us-south.cf.appdomain.cloud/
+
+prod: https://nyu-order-service-sum21-prod.us-south.cf.appdomain.cloud/
 
 ## Installation
 
-Simply clone this repository for now.
+1. Install Vagrant, VirtualBox/Docker.
+2. Clone this repository.
 
 ## Usage
 
@@ -25,6 +34,7 @@ Use the provided `Vagrantfile` to start a virtual machine, and start the server 
 vagrant up
 vagrant ssh
 cd /vagrant/
+cp dot-env-example .env
 source .env
 honcho start
 ```
@@ -40,11 +50,23 @@ The server should be visible on your local machine at `http://0.0.0.0:5000`
 - `POST /orders/<int:order_id>/items` - adds an item to the order with id of `order_id` and return the added item or `404` if the order doesn't exist
 - `DELETE /orders/<int:order_id>` - deletes the order with id of `order_id` if it exists and returns a `204` regardless of whether an actually deletion was performed
 - `DELETE /orders/<int:order_id>/items/<int:item_id>` - deletes the item with id of `item_id` in the order with id of `order_id`. It returns a `404` if either the order or the item doesn't exist.
-- `POST /orders/<int:order_id>/cancel` - cancels the order with id of `order_id`. Returns `200` for successful cancelling, returns `404` for orders not exist, returns `400` if the order in status `Completed/Returned`.
+- `PUT /orders/<int:order_id>/cancel` - cancels the order with id of `order_id`. Returns `200` for successful cancelling, returns `404` for orders not exist, returns `409` if the order in status `Completed/Returned`.
 
 ## Testing
 
-To run unit tests with coverage: run `nosetests` after logging into the VM and navigating to `/vagrant/`
+### TDD:
+
+To run unit tests with coverage: 
+
+1. Logging into the VM and navigating to `/vagrant/`
+2. Run `nosetests` 
+
+### BDD:
+
+To run integration test: 
+
+1. Run `honcho start` after logging into the VM and navigating to `/vagrant/`
+2. In a separate terminal, navigate to `/vagrant/` and run `behave`
 
 ## Contributing
 
