@@ -43,11 +43,10 @@ from service.models import CustomerOrder, Item, DataValidationError, Status
 from . import app
 from . import status  # HTTP Status Codes
 
+
 ######################################################################
 # GET INDEX
 ######################################################################
-
-
 @app.route("/")
 def index():
     """Root URL response"""
@@ -210,14 +209,14 @@ class OrderResource(Resource):
 
         return '', status.HTTP_204_NO_CONTENT
 
+
 ######################################################################
 #  PATH: /orders
 ######################################################################
-
-
 @api.route('/orders', strict_slashes=False)
 class OrderCollection(Resource):
     """ Handles all interactions with collections of Orders """
+
     # ------------------------------------------------------------------
     # LIST ALL Orders
     # ------------------------------------------------------------------
@@ -247,7 +246,6 @@ class OrderCollection(Resource):
     # ------------------------------------------------------------------
     # ADD A NEW Order
     # ------------------------------------------------------------------
-
     @api.doc('create_orders')
     @api.response(400, 'The posted data was not valid')
     @api.expect(create_model, validate=True)
@@ -303,11 +301,10 @@ class CancelResource(Resource):
         app.logger.info(f"Order with id {order_id} cancelled successfully.")
         return order.serialize(), status.HTTP_200_OK
 
+
 ######################################################################
 #  PATH: /orders/{order_id}/items/{item_id}
 ######################################################################
-
-
 @api.route('/orders/<int:order_id>/items/<int:item_id>')
 @api.param('item_id', 'The Item identifier')
 @api.param('order_id', 'The Order identifier')
@@ -317,6 +314,7 @@ class ItemResource(Resource):
     #     Allows the manipulation of a single Item
     #     GET /item{id} - Returns a Item with the id
     #     """
+
     # ------------------------------------------------------------------
     # RETRIEVE A ITEM
     # ------------------------------------------------------------------
@@ -369,15 +367,15 @@ class ItemResource(Resource):
         app.logger.info(f"item with id {item_id} delete complete")
         return '', status.HTTP_204_NO_CONTENT
 
+
 ######################################################################
 #  PATH: /orders/{order_id}/items
 ######################################################################
-
-
 @api.route('/orders/<int:order_id>/items', strict_slashes=False)
 @api.param('order_id', 'The Order identifier')
 class ItemCollection(Resource):
     """ Handles all interactions with collections of Items """
+
     # ------------------------------------------------------------------
     # ADD A NEW ITEM
     # ------------------------------------------------------------------
@@ -402,11 +400,10 @@ class ItemCollection(Resource):
         app.logger.info(f"Item with ID {message['item_id']} is created")
         return message, status.HTTP_201_CREATED, {"Location": location_url}
 
+
 ######################################################################
 #  U T I L I T Y   F U N C T I O N S
 ######################################################################
-
-
 def check_content_type(media_type):
     """Checks that the media type is correct"""
     content_type = request.headers.get("Content-Type")
