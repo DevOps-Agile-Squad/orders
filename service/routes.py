@@ -291,11 +291,8 @@ class CancelResource(Resource):
                   "Order with id '{}' was not found.".format(order_id))
 
         if order.status == Status.Completed or order.status == Status.Returned:
-            abort(status.HTTP_400_BAD_REQUEST,
+            abort(status.HTTP_409_CONFLICT,
                   f"Order with id {order_id} is [{order.status.name}], request refused.")
-
-        if order.status == Status.Cancelled:
-            return "Order with id '{}' is already cancelled.".format(order_id), status.HTTP_200_OK
 
         order.id = order_id
         order.status = Status.Cancelled
