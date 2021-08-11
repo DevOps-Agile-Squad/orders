@@ -34,7 +34,7 @@ Item - An item object represents the product in an order.
     -----------
     order_id (fk integer) - the order number that the item is associated with
     quantity (integer) - the quantity of this item in the order
-    price (integer) - the price of the product
+    price (float) - the price of the product
     item_name (integer) - the name of the product
 """
 import logging
@@ -80,7 +80,7 @@ class Item(db.Model):
         'customer_order.id'), nullable=False)
     # If null quantity will be treated as 1.
     quantity = db.Column(db.Integer, nullable=True)
-    price = db.Column(db.Integer, nullable=False)
+    price = db.Column(db.Float, nullable=False)
     # e.g., ball, balloon, etc.
     item_name = db.Column(db.String(120), nullable=False)
 

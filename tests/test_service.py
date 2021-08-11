@@ -383,7 +383,7 @@ class TestCustomerOrderServer(unittest.TestCase):  # pylint: disable=too-many-pu
         # try cancelling a completed order
         completed_order.id = data["id"]
         resp = self.app.put(f"{BASE_URL}/{completed_order.id}/cancel")
-        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(resp.status_code, status.HTTP_409_CONFLICT)
         # try get the order back and check for status
         resp = self.app.get(f"{BASE_URL}/{completed_order.id}")
         data = resp.get_json()
@@ -403,7 +403,7 @@ class TestCustomerOrderServer(unittest.TestCase):  # pylint: disable=too-many-pu
         # try cancelling a returned order
         returned_order.id = data["id"]
         resp = self.app.put(f"{BASE_URL}/{returned_order.id}/cancel")
-        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(resp.status_code, status.HTTP_409_CONFLICT)
         # try get the order back and check for status
         resp = self.app.get(f"{BASE_URL}/{returned_order.id}")
         data = resp.get_json()

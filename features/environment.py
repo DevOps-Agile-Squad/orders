@@ -22,7 +22,7 @@ def before_all(context):
     context.WAIT_SECONDS = WAIT_SECONDS
     context.driver = webdriver.Chrome(options=options)
     context.driver.implicitly_wait(context.WAIT_SECONDS)  # seconds
-    # context.driver.set_window_size(1200, 600)
+    context.driver.set_window_size(1200, 800)
 
     context.base_url = BASE_URL
     # -- SET LOG LEVEL: behave --logging-level=ERROR ...
@@ -34,4 +34,3 @@ def before_all(context):
 def after_all(context):
     """ Executed after all tests """
     context.driver.quit()
-    
